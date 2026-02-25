@@ -1,12 +1,30 @@
-FROM node:20.19-alpine
+FROM node:20.19-alpine AS builder
 
 WORKDIR /app
+
+ARG NEXT_PUBLIC_VISITORS_API
+ARG NEXT_PUBLIC_PLAYLIST_URL
+ARG NEXT_PUBLIC_WORLD_PLAYLIST_URL
+ARG NEXT_PUBLIC_BASE_PATH
+
+ENV NEXT_PUBLIC_VISITORS_API=$NEXT_PUBLIC_VISITORS_API
+ENV NEXT_PUBLIC_PLAYLIST_URL=$NEXT_PUBLIC_PLAYLIST_URL
+ENV NEXT_PUBLIC_WORLD_PLAYLIST_URL=$NEXT_PUBLIC_WORLD_PLAYLIST_URL
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
+RUN npm run build
 
-EXPOSE 3000
+FROM nginxinc/nginx-unprivileged:1.29-alpine AS runner
 
-CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/out /usr/share/nginx/html
+
+USER 101
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

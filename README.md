@@ -24,9 +24,10 @@ NEXT_PUBLIC_WORLD_PLAYLIST_URL=<world-iptv-m3u8-playlist>
 ## Docker Compose
 
 ```bash
-docker compose up --build
+docker compose --env-file .env.local up --build -d
 ```
 
+This builds the static site in a Node stage and serves it from Nginx.
 Then open `http://localhost:3000`.
 
 Use Node `20.19.0+` to avoid engine warnings (`.nvmrc` included).

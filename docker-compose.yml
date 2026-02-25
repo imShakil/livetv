@@ -3,12 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_VISITORS_API: ${NEXT_PUBLIC_VISITORS_API:-}
+        NEXT_PUBLIC_PLAYLIST_URL: ${NEXT_PUBLIC_PLAYLIST_URL:-}
+        NEXT_PUBLIC_WORLD_PLAYLIST_URL: ${NEXT_PUBLIC_WORLD_PLAYLIST_URL:-}
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
     container_name: bdiptv
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run dev -- -H 0.0.0.0 -p 3000
+      - "3000:8080"

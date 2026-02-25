@@ -5,3 +5,13 @@ out
 .github
 npm-debug.log*
 .DS_Store
+cloudflare
+docs
+*.md
+*.log
+*.env
+*.local
+*.pem
+*.key
+CNAME
+*.crt
