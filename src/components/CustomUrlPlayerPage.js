@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ListFilter, Search } from 'lucide-react';
-import VideoPlayer from '@/components/VideoPlayer';
+import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import ChannelGrid from '@/components/ChannelGrid';
 import AdSlot from '@/components/AdSlot';
-import LiveVisitorCount from '@/components/LiveVisitorCount';
 import { isHttpUrl, normalizeIframeSource } from '@/utils/sourceUtils';
 import { loadPlaylistChannelsFromUrl } from '@/utils/channels';
 import { logEvent } from '@/utils/telemetry';
+
+const PAGE_SIZE = 12;
 
 function resolveType(url, selectedType) {
   if (selectedType !== 'auto') {
@@ -35,6 +36,7 @@ export default function CustomUrlPlayerPage() {
   const [playlistChannels, setPlaylistChannels] = useState([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
+  const [page, setPage] = useState(1);
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
   const [adsConfig, setAdsConfig] = useState(null);
 
@@ -51,6 +53,26 @@ export default function CustomUrlPlayerPage() {
       return matchedQuery && matchedCategory;
     });
   }, [playlistChannels, query, category]);
+  const totalPages = Math.max(1, Math.ceil(filteredPlaylistChannels.length / PAGE_SIZE));
+  const pagedPlaylistChannels = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredPlaylistChannels.slice(start, start + PAGE_SIZE);
+  }, [filteredPlaylistChannels, page]);
+
+  const rangeStart = filteredPlaylistChannels.length ? (page - 1) * PAGE_SIZE + 1 : 0;
+  const rangeEnd = filteredPlaylistChannels.length
+    ? Math.min(page * PAGE_SIZE, filteredPlaylistChannels.length)
+    : 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, category]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   useEffect(() => {
     // Load ads config
@@ -89,6 +111,7 @@ export default function CustomUrlPlayerPage() {
           setPlaylistChannels(parsedChannels);
           setQuery('');
           setCategory('all');
+          setPage(1);
           setSelectedChannel(parsedChannels[0]);
           setCustomError('');
           logEvent('custom_playlist_loaded', { count: parsedChannels.length });
@@ -101,6 +124,7 @@ export default function CustomUrlPlayerPage() {
       setPlaylistChannels([]);
       setQuery('');
       setCategory('all');
+      setPage(1);
       setIsLoadingPlaylist(false);
     }
 
@@ -162,46 +186,15 @@ export default function CustomUrlPlayerPage() {
           {/* Ad Slot 1: Header Banner */}
           {showAds && adsConfig?.slots?.header?.enabled && <AdSlot slot="header" adsConfig={adsConfig} />}
 
-          <div className="grid gap-3 md:gap-4 lg:grid-cols-[minmax(0,2.3fr)_minmax(0px,1fr)]">
-            <div>
-              <VideoPlayer channel={selectedChannel} autoplay={Boolean(selectedChannel)} />
-            </div>
-
-            <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-steel/20 bg-white/85 p-4 shadow-card md:p-5">
-              <div className="rounded-xl border border-sea/30 bg-cyan-50 p-3.5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">Now Playing</p>
-                  <div className="flex items-center gap-1.5">
-                    {selectedChannel ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-rose-700">
-                        <span className="relative inline-flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
-                        </span>
-                        Live
-                      </span>
-                    ) : null}
-                    <span className="inline-flex rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold tracking-[0.02em] text-steel">
-                      <LiveVisitorCount compact />
-                    </span>
-                  </div>
-                </div>
-                <p className="truncate pt-1 text-base font-semibold text-ink">
-                  {selectedChannel ? selectedChannel.name : 'No stream loaded'}
-                </p>
-                {selectedChannel ? (
-                  <p className="truncate text-xs text-steel">
-                    {selectedChannel.type.toUpperCase()} stream
-                  </p>
-                ) : (
-                  <p className="truncate text-xs text-steel">Enter a URL to start streaming.</p>
-                )}
-
-              </div>
-              {/* Ad Slot 2: Sidebar Banner */}
-              {showAds && adsConfig?.slots?.sidebar?.enabled && <AdSlot slot="sidebar" adsConfig={adsConfig} />}
-            </div>
-          </div>
+          <PlayerWithSidebar
+            selectedChannel={selectedChannel}
+            autoplay={Boolean(selectedChannel)}
+            showAds={showAds}
+            adsConfig={adsConfig}
+            emptyTitle="No stream loaded"
+            emptySubtitle="Enter a URL to start streaming."
+            getMetaText={(channel) => `${channel.type.toUpperCase()} stream`}
+          />
         </section>
 
         {playlistChannels.length > 0 ? (
@@ -233,12 +226,39 @@ export default function CustomUrlPlayerPage() {
             </div>
 
             <ChannelGrid
-              channels={filteredPlaylistChannels}
+              channels={pagedPlaylistChannels}
               selectedChannel={selectedChannel}
               onSelect={handleSelectPlaylistChannel}
               showAds={false}
               adsConfig={adsConfig}
             />
+
+            <div className="flex flex-col gap-2 border-t border-steel/15 pt-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-steel">
+                Showing {rangeStart}-{rangeEnd} of {filteredPlaylistChannels.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((value) => Math.max(1, value - 1))}
+                  disabled={page === 1}
+                  className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="min-w-20 text-center text-xs font-semibold text-steel">
+                  Page {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                  disabled={page === totalPages}
+                  className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </section>
         ) : null}
       </div>

@@ -5,8 +5,8 @@ import { ListFilter, Search } from 'lucide-react';
 import ChannelGrid from '@/components/ChannelGrid';
 import HeroHeader from '@/components/HeroHeader';
 import VideoPlayer from '@/components/VideoPlayer';
+import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import AdSlot from '@/components/AdSlot';
-import LiveVisitorCount from '@/components/LiveVisitorCount';
 import { logEvent } from '@/utils/telemetry';
 
 const PAGE_SIZE = 12;
@@ -101,50 +101,16 @@ export default function ChannelBrowser({
         {/* Ad Slot 1: Header Banner */}
         {showAds && adsConfig?.slots?.header?.enabled && <AdSlot slot="header" adsConfig={adsConfig} />}
 
-        <div className="grid gap-3 md:gap-4 lg:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
-          <div className="min-w-0">
-            <VideoPlayer channel={selectedChannel} autoplay={autoplay} />
-          </div>
-
-          <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-steel/20 bg-white/85 p-4 shadow-card md:p-5">
-            <div className="rounded-xl border border-sea/30 bg-cyan-50 p-3.5">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">Now Playing</p>
-                <div className="flex items-center gap-1.5">
-                  {selectedChannel ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-rose-700">
-                      <span className="relative inline-flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
-                      </span>
-                      Live
-                    </span>
-                  ) : null}
-                  <span className="inline-flex rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold tracking-[0.02em] text-steel">
-                    <LiveVisitorCount compact />
-                  </span>
-                </div>
-              </div>
-              <p className="truncate pt-1 text-base font-semibold text-ink">
-                {selectedChannel ? selectedChannel.name : 'No channel selected'}
-              </p>
-              {selectedChannel ? (
-                <p className="truncate text-xs text-steel">
-                  {selectedChannel.category || 'Uncategorized'}
-                  {selectedChannel.language ? ` · ${selectedChannel.language}` : ''}
-                </p>
-              ) : (
-                <p className="truncate text-xs text-steel">Select a channel from the list below.</p>
-              )}
-            </div>
-            {/* Ad Slot 2: Sidebar Banner */}
-            {showAds && adsConfig?.slots?.sidebar?.enabled && (
-              <div className="min-w-0 overflow-hidden">
-                <AdSlot slot="sidebar" adsConfig={adsConfig} />
-              </div>
-            )}
-          </div>
-        </div>
+        <PlayerWithSidebar
+          selectedChannel={selectedChannel}
+          autoplay={autoplay}
+          showAds={showAds}
+          adsConfig={adsConfig}
+          getMetaText={(channel) => {
+            const primary = channel.category || 'Uncategorized';
+            return channel.language ? `${primary} · ${channel.language}` : primary;
+          }}
+        />
       </section>
       <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
         <div className="grid gap-2.5 md:gap-3 md:grid-cols-[1.6fr_1fr]">
