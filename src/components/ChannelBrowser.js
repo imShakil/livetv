@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ListFilter, Search } from 'lucide-react';
 import ChannelGrid from '@/components/ChannelGrid';
+import ChannelFiltersBar from '@/components/ChannelFiltersBar';
 import HeroHeader from '@/components/HeroHeader';
+import PaginationFooter from '@/components/PaginationFooter';
 import VideoPlayer from '@/components/VideoPlayer';
 import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import AdSlot from '@/components/AdSlot';
@@ -113,33 +114,14 @@ export default function ChannelBrowser({
         />
       </section>
       <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
-        <div className="grid gap-2.5 md:gap-3 md:grid-cols-[1.6fr_1fr]">
-          <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
-            <Search className="h-4 w-4 text-steel" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search channels"
-              className="w-full border-none bg-transparent text-sm outline-none placeholder:text-steel/70"
-            />
-          </label>
-
-          <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
-            <ListFilter className="h-4 w-4 text-steel" />
-            <select
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              className="w-full bg-transparent text-sm outline-none"
-            >
-              {categories.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry === 'all' ? 'All categories' : entry}
-                </option>
-              ))}
-            </select>
-          </label>
-
-        </div>
+        <ChannelFiltersBar
+          query={query}
+          onQueryChange={setQuery}
+          category={category}
+          onCategoryChange={setCategory}
+          categories={categories}
+          queryPlaceholder="Search channels"
+        />
 
         <ChannelGrid
           channels={pagedChannels}
@@ -149,32 +131,15 @@ export default function ChannelBrowser({
           adsConfig={adsConfig}
         />
 
-        <div className="flex flex-col gap-2 border-t border-steel/15 pt-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-steel">
-            Showing {rangeStart}-{rangeEnd} of {filteredChannels.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-              disabled={page === 1}
-              className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="min-w-20 text-center text-xs font-semibold text-steel">
-              Page {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-              disabled={page === totalPages}
-              className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <PaginationFooter
+          page={page}
+          totalPages={totalPages}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          totalCount={filteredChannels.length}
+          onPrevious={() => setPage((value) => Math.max(1, value - 1))}
+          onNext={() => setPage((value) => Math.min(totalPages, value + 1))}
+        />
       </section>
 
       {/* Ad Slot 3: Below Player */}

@@ -8,7 +8,7 @@ const MENU_ITEMS = [
   { label: 'Home', href: '/' },
   { label: 'Featuring', href: '/featuring' },
   { label: 'World IPTV', href: '/world' },
-  { label: 'Custom Player', href: '/play' }
+  { label: 'IPTV Player', href: '/play' }
 ];
 
 export default function SiteHeader() {

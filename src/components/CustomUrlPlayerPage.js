@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ListFilter, Search } from 'lucide-react';
+import ChannelFiltersBar from '@/components/ChannelFiltersBar';
+import PaginationFooter from '@/components/PaginationFooter';
 import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import ChannelGrid from '@/components/ChannelGrid';
 import AdSlot from '@/components/AdSlot';
+import useAdsConfig from '@/hooks/useAdsConfig';
 import { isHttpUrl, normalizeIframeSource } from '@/utils/sourceUtils';
 import { loadPlaylistChannelsFromUrl } from '@/utils/channels';
 import { logEvent } from '@/utils/telemetry';
@@ -38,7 +40,7 @@ export default function CustomUrlPlayerPage() {
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(1);
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
-  const [adsConfig, setAdsConfig] = useState(null);
+  const adsConfig = useAdsConfig();
 
   const showAds = adsConfig?.enabled || false;
   const categories = useMemo(() => {
@@ -73,14 +75,6 @@ export default function CustomUrlPlayerPage() {
       setPage(totalPages);
     }
   }, [page, totalPages]);
-
-  useEffect(() => {
-    // Load ads config
-    fetch('/data/ads.json')
-      .then(res => res.json())
-      .then(data => setAdsConfig(data))
-      .catch(() => setAdsConfig({ enabled: false }));
-  }, []);
 
   const handlePlayCustomUrl = async () => {
     const value = customUrl.trim();
@@ -199,31 +193,14 @@ export default function CustomUrlPlayerPage() {
 
         {playlistChannels.length > 0 ? (
           <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
-            <div className="grid gap-2.5 md:grid-cols-[1.6fr_1fr] md:gap-3">
-              <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
-                <Search className="h-4 w-4 text-steel" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search playlist channels"
-                  className="w-full border-none bg-transparent text-sm outline-none placeholder:text-steel/70"
-                />
-              </label>
-              <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
-                <ListFilter className="h-4 w-4 text-steel" />
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  className="w-full bg-transparent text-sm outline-none"
-                >
-                  {categories.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {entry === 'all' ? 'All categories' : entry}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <ChannelFiltersBar
+              query={query}
+              onQueryChange={setQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              categories={categories}
+              queryPlaceholder="Search playlist channels"
+            />
 
             <ChannelGrid
               channels={pagedPlaylistChannels}
@@ -233,32 +210,15 @@ export default function CustomUrlPlayerPage() {
               adsConfig={adsConfig}
             />
 
-            <div className="flex flex-col gap-2 border-t border-steel/15 pt-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-steel">
-                Showing {rangeStart}-{rangeEnd} of {filteredPlaylistChannels.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((value) => Math.max(1, value - 1))}
-                  disabled={page === 1}
-                  className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <span className="min-w-20 text-center text-xs font-semibold text-steel">
-                  Page {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-lg border border-steel/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <PaginationFooter
+              page={page}
+              totalPages={totalPages}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              totalCount={filteredPlaylistChannels.length}
+              onPrevious={() => setPage((value) => Math.max(1, value - 1))}
+              onNext={() => setPage((value) => Math.min(totalPages, value + 1))}
+            />
           </section>
         ) : null}
       </div>
