@@ -28,9 +28,10 @@ function sanitizeChannel(channel, index, origin) {
     return null;
   }
 
-  if (source.startsWith('http://')) {
-    source = `https://${source.slice(7)}`;
-  }
+  // TODO: let's keep it simple 
+  // if (source.startsWith('http://')) {
+  //   source = `https://${source.slice(7)}`;
+  // }
 
   if (type === 'm3u8' && !isHttpUrl(source)) {
     return null;
