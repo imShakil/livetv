@@ -1,12 +1,12 @@
 /**
- * Cloudflare Worker (KV-backed) for approximate live visitor counting.
+ * Cloudflare Worker + Durable Object for live visitor counting.
  *
  * Endpoints:
  * - POST /heartbeat  { id: string }
  * - GET  /online     -> { online: number, totalVisitors: number, windowSeconds: number }
  *
  * Required binding:
- * - VISITORS (KV namespace)
+ * - VISITOR_COUNTER (Durable Object binding)
  *
  * Optional vars:
  * - ALLOWED_ORIGIN (default "*")
@@ -29,94 +29,112 @@ function json(data, status, env) {
   });
 }
 
-const ONLINE_PREFIX = 'v:';
-const SEEN_PREFIX = 'seen:';
-const TOTAL_VISITORS_KEY = 'stats:total_visitors';
+function withCors(response, env) {
+  const headers = new Headers(response.headers);
+  const cors = corsHeaders(env);
+  for (const [key, value] of Object.entries(cors)) {
+    headers.set(key, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+export class VisitorCounterDO {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+    this.seenCache = new Set();
+    this.active = new Map();
+    this.totalVisitors = 0;
+    this.initPromise = this.initialize();
+  }
+
+  async initialize() {
+    const rawTotal = await this.state.storage.get('totalVisitors');
+    const parsed = Number.parseInt(String(rawTotal || '0'), 10);
+    this.totalVisitors = Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  pruneActive(ttlMs) {
+    const threshold = Date.now() - ttlMs;
+    for (const [id, lastSeen] of this.active.entries()) {
+      if (lastSeen < threshold) {
+        this.active.delete(id);
+      }
+    }
+  }
+
+  async fetch(request) {
+    await this.initPromise;
+
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, '') || '/';
+    const ttlSeconds = Number(this.env.VISITOR_TTL_SECONDS || 180);
+    const ttlMs = Math.max(1, ttlSeconds) * 1000;
+
+    if (path === '/heartbeat' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return new Response(JSON.stringify({ ok: false, error: 'invalid request body' }), { status: 400 });
+      }
+
+      const id = String(body?.id || '').trim();
+      if (!id || id.length > 128) {
+        return new Response(JSON.stringify({ ok: false, error: 'invalid visitor id' }), { status: 400 });
+      }
+
+      this.active.set(id, Date.now());
+      this.pruneActive(ttlMs);
+
+      if (!this.seenCache.has(id)) {
+        const key = `seen:${id}`;
+        const seenBefore = await this.state.storage.get(key);
+        if (!seenBefore) {
+          await this.state.storage.put(key, 1);
+          this.totalVisitors += 1;
+          await this.state.storage.put('totalVisitors', this.totalVisitors);
+        }
+        this.seenCache.add(id);
+      }
+
+      return new Response(JSON.stringify({ ok: true, totalVisitors: this.totalVisitors }), { status: 200 });
+    }
+
+    if (path === '/online' && request.method === 'GET') {
+      this.pruneActive(ttlMs);
+      return new Response(
+        JSON.stringify({
+          online: this.active.size,
+          totalVisitors: this.totalVisitors,
+          windowSeconds: ttlSeconds
+        }),
+        { status: 200 }
+      );
+    }
+
+    return new Response(JSON.stringify({ ok: false, error: 'not found' }), { status: 404 });
+  }
+}
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname.replace(/\/+$/, '') || '/';
-    const ttlSeconds = Number(env.VISITOR_TTL_SECONDS || 180);
-
-    if (!env?.VISITORS) {
-      return json({ ok: false, error: 'KV binding VISITORS is missing' }, 500, env);
+    if (!env?.VISITOR_COUNTER) {
+      return json({ ok: false, error: 'Durable Object binding VISITOR_COUNTER is missing' }, 500, env);
     }
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(env) });
     }
 
-    if (path === '/heartbeat' && request.method === 'POST') {
-      let body;
-
-      try {
-        body = await request.json();
-      } catch {
-        return json({ ok: false, error: 'invalid request body' }, 400, env);
-      }
-
-      const id = String(body?.id || '').trim();
-
-      if (!id || id.length > 128) {
-        return json({ ok: false, error: 'invalid visitor id' }, 400, env);
-      }
-
-      try {
-        await env.VISITORS.put(`${ONLINE_PREFIX}${id}`, '1', { expirationTtl: ttlSeconds });
-
-        const seenKey = `${SEEN_PREFIX}${id}`;
-        const seenBefore = await env.VISITORS.get(seenKey);
-
-        if (!seenBefore) {
-          await env.VISITORS.put(seenKey, '1');
-
-          // Approximate increment for total visitors (KV is eventually consistent).
-          const rawTotal = await env.VISITORS.get(TOTAL_VISITORS_KEY);
-          const currentTotal = Number.parseInt(rawTotal || '0', 10);
-          const nextTotal = Number.isFinite(currentTotal) ? currentTotal + 1 : 1;
-          await env.VISITORS.put(TOTAL_VISITORS_KEY, String(nextTotal));
-        }
-
-        const totalVisitors = Number.parseInt((await env.VISITORS.get(TOTAL_VISITORS_KEY)) || '0', 10);
-        return json({ ok: true, totalVisitors: Number.isFinite(totalVisitors) ? totalVisitors : 0 }, 200, env);
-      } catch {
-        return json({ ok: false, error: 'failed to write visitor data' }, 500, env);
-      }
-    }
-
-    if (path === '/online' && request.method === 'GET') {
-      let cursor = undefined;
-      let online = 0;
-      let pages = 0;
-
-      // Safety cap to avoid unbounded loops on very large keyspaces.
-      while (pages < 50) {
-        const page = await env.VISITORS.list({ prefix: ONLINE_PREFIX, cursor, limit: 1000 });
-        online += page.keys.length;
-        pages += 1;
-
-        if (page.list_complete) {
-          break;
-        }
-
-        cursor = page.cursor;
-      }
-
-      const rawTotalVisitors = await env.VISITORS.get(TOTAL_VISITORS_KEY);
-      const totalVisitors = Number.parseInt(rawTotalVisitors || '0', 10);
-
-      return json(
-        {
-          online,
-          totalVisitors: Number.isFinite(totalVisitors) ? totalVisitors : 0,
-          windowSeconds: ttlSeconds
-        },
-        200,
-        env
-      );
-    }
-
-    return json({ ok: false, error: 'not found' }, 404, env);
+    const id = env.VISITOR_COUNTER.idFromName('global');
+    const stub = env.VISITOR_COUNTER.get(id);
+    const response = await stub.fetch(request);
+    return withCors(response, env);
   }
 };

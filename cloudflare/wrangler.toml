@@ -2,9 +2,14 @@ name = "bdiptv-visitors"
 main = "./visitor-counter-worker.js"
 compatibility_date = "2026-02-25"
 
-kv_namespaces = [
-  { binding = "VISITORS", id = "5a0bb25940604531baa696261a2735d0" }
+[durable_objects]
+bindings = [
+  { name = "VISITOR_COUNTER", class_name = "VisitorCounterDO" }
 ]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["VisitorCounterDO"]
 
 [vars]
 ALLOWED_ORIGIN = "https://bdixtv.mhosen.com"
