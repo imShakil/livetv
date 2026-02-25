@@ -1,5 +1,5 @@
 import { parseM3U8 } from '@/utils/m3u8Parser';
-import { isHttpUrl, normalizeIframeSource } from '@/utils/sourceUtils';
+import { isHttpUrl, normalizeIframeSource, normalizeStreamSource } from '@/utils/sourceUtils';
 
 export const PLAYLIST_URL = process.env.NEXT_PUBLIC_PLAYLIST_URL || '';
 export const WORLD_PLAYLIST_URL = process.env.NEXT_PUBLIC_WORLD_PLAYLIST_URL || '';
@@ -28,10 +28,7 @@ function sanitizeChannel(channel, index, origin) {
     return null;
   }
 
-  // TODO: let's keep it simple 
-  // if (source.startsWith('http://')) {
-  //   source = `https://${source.slice(7)}`;
-  // }
+  source = normalizeStreamSource(source);
 
   if (type === 'm3u8' && !isHttpUrl(source)) {
     return null;
