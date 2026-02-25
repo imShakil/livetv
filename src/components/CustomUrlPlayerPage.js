@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { ListFilter, Search } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
+import ChannelGrid from '@/components/ChannelGrid';
 import AdSlot from '@/components/AdSlot';
 import LiveVisitorCount from '@/components/LiveVisitorCount';
 import { isHttpUrl, normalizeIframeSource } from '@/utils/sourceUtils';
+import { loadPlaylistChannelsFromUrl } from '@/utils/channels';
 import { logEvent } from '@/utils/telemetry';
 
 function resolveType(url, selectedType) {
@@ -13,7 +16,7 @@ function resolveType(url, selectedType) {
   }
 
   const lowered = url.toLowerCase();
-  if (lowered.includes('.m3u8')) {
+  if (lowered.includes('.m3u8') || lowered.includes('.m3u')) {
     return 'm3u8';
   }
 
@@ -29,9 +32,25 @@ export default function CustomUrlPlayerPage() {
   const [customType, setCustomType] = useState('auto');
   const [customError, setCustomError] = useState('');
   const [selectedChannel, setSelectedChannel] = useState(null);
+  const [playlistChannels, setPlaylistChannels] = useState([]);
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
   const [adsConfig, setAdsConfig] = useState(null);
 
   const showAds = adsConfig?.enabled || false;
+  const categories = useMemo(() => {
+    const values = new Set(playlistChannels.map((item) => item.category).filter(Boolean));
+    return ['all', ...Array.from(values).sort((a, b) => a.localeCompare(b))];
+  }, [playlistChannels]);
+
+  const filteredPlaylistChannels = useMemo(() => {
+    return playlistChannels.filter((channel) => {
+      const matchedQuery = channel.name.toLowerCase().includes(query.toLowerCase().trim());
+      const matchedCategory = category === 'all' || channel.category === category;
+      return matchedQuery && matchedCategory;
+    });
+  }, [playlistChannels, query, category]);
 
   useEffect(() => {
     // Load ads config
@@ -41,7 +60,7 @@ export default function CustomUrlPlayerPage() {
       .catch(() => setAdsConfig({ enabled: false }));
   }, []);
 
-  const handlePlayCustomUrl = () => {
+  const handlePlayCustomUrl = async () => {
     const value = customUrl.trim();
     if (!value) {
       setCustomError('Enter a stream URL first.');
@@ -61,6 +80,31 @@ export default function CustomUrlPlayerPage() {
       return;
     }
 
+    if (resolvedType === 'm3u8') {
+      setIsLoadingPlaylist(true);
+      try {
+        const parsedChannels = await loadPlaylistChannelsFromUrl(value);
+
+        if (parsedChannels.length > 0) {
+          setPlaylistChannels(parsedChannels);
+          setQuery('');
+          setCategory('all');
+          setSelectedChannel(parsedChannels[0]);
+          setCustomError('');
+          logEvent('custom_playlist_loaded', { count: parsedChannels.length });
+          return;
+        }
+      } finally {
+        setIsLoadingPlaylist(false);
+      }
+    } else {
+      setPlaylistChannels([]);
+      setQuery('');
+      setCategory('all');
+      setIsLoadingPlaylist(false);
+    }
+
+    setPlaylistChannels([]);
     setSelectedChannel({
       id: `custom-url-${Date.now()}`,
       name: 'Custom URL Stream',
@@ -74,6 +118,11 @@ export default function CustomUrlPlayerPage() {
 
     setCustomError('');
     logEvent('custom_url_played', { type: resolvedType });
+  };
+
+  const handleSelectPlaylistChannel = (channel) => {
+    setSelectedChannel(channel);
+    logEvent('custom_playlist_channel_selected', { id: channel.id, name: channel.name });
   };
 
   return (
@@ -101,9 +150,10 @@ export default function CustomUrlPlayerPage() {
               <button
                 type="button"
                 onClick={handlePlayCustomUrl}
+                disabled={isLoadingPlaylist}
                 className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-steel"
               >
-                Play URL
+                {isLoadingPlaylist ? 'Loading playlist...' : 'Play URL'}
               </button>
             </div>
             {customError ? <p className="text-xs text-rose-700">{customError}</p> : null}
@@ -153,6 +203,44 @@ export default function CustomUrlPlayerPage() {
             </div>
           </div>
         </section>
+
+        {playlistChannels.length > 0 ? (
+          <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
+            <div className="grid gap-2.5 md:grid-cols-[1.6fr_1fr] md:gap-3">
+              <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
+                <Search className="h-4 w-4 text-steel" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search playlist channels"
+                  className="w-full border-none bg-transparent text-sm outline-none placeholder:text-steel/70"
+                />
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-steel/20 bg-white px-3 py-2.5">
+                <ListFilter className="h-4 w-4 text-steel" />
+                <select
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                  className="w-full bg-transparent text-sm outline-none"
+                >
+                  {categories.map((entry) => (
+                    <option key={entry} value={entry}>
+                      {entry === 'all' ? 'All categories' : entry}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <ChannelGrid
+              channels={filteredPlaylistChannels}
+              selectedChannel={selectedChannel}
+              onSelect={handleSelectPlaylistChannel}
+              showAds={false}
+              adsConfig={adsConfig}
+            />
+          </section>
+        ) : null}
       </div>
       {/* Ad Slot 3: Below Player */}
       {showAds && adsConfig?.slots?.belowPlayer?.enabled && <AdSlot slot="belowPlayer" adsConfig={adsConfig} />}

@@ -20,7 +20,7 @@ function sanitizeChannel(channel, index, origin) {
   const name = (channel.name || '').trim() || `Channel ${index + 1}`;
   const logo = (channel.logo || '').trim();
   const type = channel.type || 'custom';
-  const source = (channel.source || '').trim();
+  let source = (channel.source || '').trim();
   const category = normalizeCategory(channel.category);
   const language = (channel.language || '').trim();
 
@@ -28,10 +28,9 @@ function sanitizeChannel(channel, index, origin) {
     return null;
   }
 
-  // TODO: Re-enable to Skip HTTP sources (blocked on HTTPS sites)
-  // if (source.startsWith('http://')) {
-  //   return null;
-  // }
+  if (source.startsWith('http://')) {
+    source = `https://${source.slice(7)}`;
+  }
 
   if (type === 'm3u8' && !isHttpUrl(source)) {
     return null;
