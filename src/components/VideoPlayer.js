@@ -45,7 +45,6 @@ export default function VideoPlayer({ channel, autoplay }) {
       typeof window === 'undefined' ||
       !channel ||
       window.location.protocol !== 'https:' ||
-      channel.type === 'iframe' ||
       !channel.source.startsWith('http://')
     ) {
       return null;
@@ -76,7 +75,7 @@ export default function VideoPlayer({ channel, autoplay }) {
   const insecureStream =
     typeof window !== 'undefined' &&
     window.location.protocol === 'https:' &&
-    channel.type !== 'iframe' &&
+    // channel.type !== 'iframe' &&
     channel.source.startsWith('http://');
 
   // TODO: Re-enable this check once we have a better solution for mixed content
@@ -113,6 +112,7 @@ export default function VideoPlayer({ channel, autoplay }) {
 
     return (
       <div className="relative overflow-hidden rounded-2xl border border-steel/20 bg-black shadow-card ring-1 ring-black/5">
+        {insecureStream ? <MixedContentWarning httpPlayerUrl={httpPlayerUrl} /> : null}
         <div className="aspect-video md:aspect-[16/9]">
           <iframe
             src={iframeSrc}
