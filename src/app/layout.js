@@ -38,6 +38,16 @@ export default function RootLayout({ children }) {
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2449944472030683"
           crossOrigin="anonymous"
         />
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-YY76ZPGRHG"
+        />
+        <script>{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-YY76ZPGRHG');
+        `}</script>
       </head>
       <body>
         <SiteHeader />
