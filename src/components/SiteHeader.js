@@ -13,6 +13,26 @@ const MENU_ITEMS = [
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const handleBrandClick = (event) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    window.location.assign(`https://${window.location.host}/`);
+  };
+
   const isItemActive = (href) => {
     if (href === '/') {
       return pathname === '/';
@@ -24,7 +44,7 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-steel/15 bg-white/75 backdrop-blur-md">
       <nav className="mx-auto flex w-full max-w-[1440px] flex-col gap-2.5 px-3 py-3 md:flex-row md:items-center md:justify-between md:gap-4 md:px-4 xl:px-5">
-        <a href="/" className="flex min-w-0 items-center gap-2">
+        <a href="/" onClick={handleBrandClick} className="flex min-w-0 items-center gap-2">
           <img src="/icon.svg" alt="BDIX IPTV logo" className="h-7 w-7 shrink-0 rounded-lg border border-steel/20 md:h-8 md:w-8" />
           <span className="truncate text-sm font-extrabold tracking-tight text-ink sm:text-base md:text-lg">
             {SITE_BRANDING.title}
