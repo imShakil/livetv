@@ -3,7 +3,7 @@ import { isHttpIpSource, isHttpUrl, normalizeIframeSource, normalizeStreamSource
 
 export const PLAYLIST_URL = process.env.NEXT_PUBLIC_PLAYLIST_URL || '';
 export const WORLD_PLAYLIST_URL = process.env.NEXT_PUBLIC_WORLD_PLAYLIST_URL || '';
-const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
+export const FEATURED_JSON_PLAYLIST_URL = process.env.NEXT_PUBLIC_FEATURED_JSON_PLAYLIST || '';
 
 function normalizeCategory(category) {
   const cat = (category || 'Uncategorized').toLowerCase().trim();
@@ -120,8 +120,7 @@ export async function loadPlaylistChannelsFromUrl(url, options = {}) {
 
 export async function loadCustomChannels(options = {}) {
   try {
-    const localPath = BASE_PATH ? `${BASE_PATH}/data/custom-channels.json` : '/data/custom-channels.json';
-    return await loadCustomFromUrl(localPath, options);
+    return await loadCustomFromUrl(FEATURED_JSON_PLAYLIST_URL, options);
   } catch {
     return [];
   }

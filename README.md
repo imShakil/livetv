@@ -19,6 +19,7 @@ Use `.env.local` (see `.env.example`) for runtime variables like:
 NEXT_PUBLIC_VISITORS_API=<visitor-count-api>
 NEXT_PUBLIC_PLAYLIST_URL=<bdixtv-public-m3u8-playlist>
 NEXT_PUBLIC_WORLD_PLAYLIST_URL=<world-iptv-m3u8-playlist>
+NEXT_PUBLIC_FEATURED_JSON_PLAYLIST=<public-featured-json-playlist-url>
 ```
 
 ## Docker Compose
@@ -43,7 +44,9 @@ If deployed under a subpath (example `/bdixtv`), set `NEXT_PUBLIC_BASE_PATH=/bdi
 
 ## Custom channel management
 
-Edit `public/data/custom-channels.json` with entries like:
+Custom channels are loaded from `NEXT_PUBLIC_FEATURED_JSON_PLAYLIST`.
+
+JSON payload format:
 
 ```json
 {
