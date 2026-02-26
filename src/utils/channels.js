@@ -28,11 +28,12 @@ function sanitizeChannel(channel, index, origin) {
     return null;
   }
 
-  if (isHttpIpSource(source)) {
-    return null;
-  }
+  // TODO: re-enable if you want to skip insecure url with IP address and replace http to https for domain name
+  // if (isHttpIpSource(source)) {
+  //   return null;
+  // }
 
-  source = normalizeStreamSource(source);
+  // source = normalizeStreamSource(source);
 
   if (type === 'm3u8' && !isHttpUrl(source)) {
     return null;
@@ -100,10 +101,13 @@ export async function loadPlaylistChannelsFromUrl(url, options = {}) {
         'kids', 'documentary', 'lifestyle', 'general', 'business', 'animation'
       ];
       
-      filtered = parsed.filter(channel => {
+      const popularOnly = parsed.filter((channel) => {
         const cat = channel.category?.toLowerCase() || '';
         return popularCategories.some(pop => cat.includes(pop));
       });
+
+      // If category filtering removes everything, keep original parsed list.
+      filtered = popularOnly.length ? popularOnly : parsed;
     }
 
     return filtered

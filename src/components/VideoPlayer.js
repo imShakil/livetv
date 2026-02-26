@@ -8,6 +8,29 @@ import { logEvent } from '@/utils/telemetry';
 
 const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
+function MixedContentWarning({ httpPlayerUrl }) {
+  if (!httpPlayerUrl) {
+    return null;
+  }
+
+  return (
+    <div className="absolute right-3 top-3 z-20 max-w-[300px] rounded-lg border border-amber-300 bg-amber-50/95 p-2 text-amber-900 shadow">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="text-xs">
+          <p className="font-semibold">HTTP stream on HTTPS page.</p>
+          <a
+            href={httpPlayerUrl}
+            className="mt-1 inline-flex items-center gap-1 font-semibold underline"
+          >
+            Open HTTP player <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function VideoPlayer({ channel, autoplay }) {
   const isMobile = useMemo(() => {
     if (typeof navigator === 'undefined') {
@@ -16,6 +39,31 @@ export default function VideoPlayer({ channel, autoplay }) {
 
     return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   }, []);
+
+  const httpPlayerUrl = useMemo(() => {
+    if (
+      typeof window === 'undefined' ||
+      !channel ||
+      window.location.protocol !== 'https:' ||
+      channel.type === 'iframe' ||
+      !channel.source.startsWith('http://')
+    ) {
+      return null;
+    }
+
+    try {
+      const target = new URL('/play', window.location.href);
+      target.protocol = 'http:';
+      target.searchParams.set('url', channel.source);
+      target.searchParams.set('type', channel.type || 'auto');
+      if (channel.name) {
+        target.searchParams.set('name', channel.name);
+      }
+      return target.toString();
+    } catch {
+      return window.location.href.replace(/^https:/, 'http:');
+    }
+  }, [channel]);
 
   if (!channel) {
     return (
@@ -84,6 +132,7 @@ export default function VideoPlayer({ channel, autoplay }) {
   if (useNativePlayer) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-steel/20 bg-black shadow-card ring-1 ring-black/5">
+        {insecureStream ? <MixedContentWarning httpPlayerUrl={httpPlayerUrl} /> : null}
         <div className="aspect-video md:aspect-[16/9]">
           <video
             src={channel.source}
@@ -102,6 +151,7 @@ export default function VideoPlayer({ channel, autoplay }) {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-steel/20 bg-black shadow-card ring-1 ring-black/5">
+      {insecureStream ? <MixedContentWarning httpPlayerUrl={httpPlayerUrl} /> : null}
       <div className="aspect-video md:aspect-[16/9]">
         <ReactPlayer
           url={channel.source}

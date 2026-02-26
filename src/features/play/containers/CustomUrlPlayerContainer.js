@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ChannelFiltersBar from '@/components/ChannelFiltersBar';
 import PaginationFooter from '@/components/PaginationFooter';
 import PlayerWithSidebar from '@/components/PlayerWithSidebar';
@@ -29,6 +29,36 @@ function resolveType(url, selectedType) {
   return 'custom';
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function getQueryParam(search, key) {
+  const query = search.startsWith('?') ? search.slice(1) : search;
+  if (!query) {
+    return '';
+  }
+
+  const parts = query.split('&');
+  for (const part of parts) {
+    if (!part) {
+      continue;
+    }
+    const [rawKey, ...rawValueParts] = part.split('=');
+    if (safeDecode(rawKey) !== key) {
+      continue;
+    }
+    const rawValue = rawValueParts.join('=').replace(/\+/g, ' ');
+    return safeDecode(rawValue);
+  }
+
+  return '';
+}
+
 export default function CustomUrlPlayerPage() {
   const [customUrl, setCustomUrl] = useState('');
   const [customType, setCustomType] = useState('auto');
@@ -36,6 +66,7 @@ export default function CustomUrlPlayerPage() {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [playlistChannels, setPlaylistChannels] = useState([]);
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
+  const autoLoadKeyRef = useRef('');
   const adsConfig = useAdsConfig();
 
   const showAds = adsConfig?.enabled || false;
@@ -54,14 +85,13 @@ export default function CustomUrlPlayerPage() {
     rangeEnd
   } = useChannelFilteringPagination({ channels: playlistChannels });
 
-  const handlePlayCustomUrl = async () => {
-    const value = customUrl.trim();
+  const playCustomUrl = useCallback(async ({ value, selectedType, name }) => {
     if (!value) {
       setCustomError('Enter a stream URL first.');
       return;
     }
 
-    const resolvedType = resolveType(value, customType);
+    const resolvedType = resolveType(value, selectedType);
 
     if (resolvedType === 'iframe') {
       const iframeSrc = normalizeIframeSource(value);
@@ -80,11 +110,14 @@ export default function CustomUrlPlayerPage() {
         const parsedChannels = await loadPlaylistChannelsFromUrl(value);
 
         if (parsedChannels.length > 0) {
+          const nameMatch = name
+            ? parsedChannels.find((channel) => channel.name?.trim() === name)
+            : null;
           setPlaylistChannels(parsedChannels);
           setQuery('');
           setCategory('all');
           setPage(1);
-          setSelectedChannel(parsedChannels[0]);
+          setSelectedChannel(nameMatch || parsedChannels[0]);
           setCustomError('');
           logEvent('custom_playlist_loaded', { count: parsedChannels.length });
           return;
@@ -103,7 +136,7 @@ export default function CustomUrlPlayerPage() {
     setPlaylistChannels([]);
     setSelectedChannel({
       id: `custom-url-${Date.now()}`,
-      name: 'Custom URL Stream',
+      name: name || 'Custom URL Stream',
       logo: '',
       type: resolvedType,
       source: value,
@@ -114,7 +147,43 @@ export default function CustomUrlPlayerPage() {
 
     setCustomError('');
     logEvent('custom_url_played', { type: resolvedType });
+  }, [setCategory, setPage, setQuery]);
+
+  const handlePlayCustomUrl = async () => {
+    await playCustomUrl({
+      value: customUrl.trim(),
+      selectedType: customType,
+      name: ''
+    });
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const urlParam = getQueryParam(window.location.search, 'url').trim();
+    if (!urlParam) {
+      return;
+    }
+
+    const typeParam = (getQueryParam(window.location.search, 'type') || 'auto').trim().toLowerCase();
+    const validType = ['auto', 'm3u8', 'iframe', 'custom'].includes(typeParam) ? typeParam : 'auto';
+    const nameParam = getQueryParam(window.location.search, 'name').trim();
+    const key = `${urlParam}|${validType}|${nameParam}`;
+    if (autoLoadKeyRef.current === key) {
+      return;
+    }
+    autoLoadKeyRef.current = key;
+
+    setCustomUrl(urlParam);
+    setCustomType(validType);
+    playCustomUrl({
+      value: urlParam,
+      selectedType: validType,
+      name: nameParam
+    });
+  }, [playCustomUrl]);
 
   const handleSelectPlaylistChannel = (channel) => {
     setSelectedChannel(channel);
