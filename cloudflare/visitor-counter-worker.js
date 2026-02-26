@@ -10,28 +10,60 @@
  *
  * Optional vars:
  * - ALLOWED_ORIGIN (default "*")
+ * - ALLOWED_ORIGIN_REGEX (optional, e.g. '^https?://([a-z0-9-]+\\.)*mhosen\\.com(:\\d+)?$')
  * - VISITOR_TTL_SECONDS (default 180)
  */
 
-function corsHeaders(env) {
-  return {
-    'access-control-allow-origin': env.ALLOWED_ORIGIN || '*',
+function resolveAllowedOrigin(request, env) {
+  const configured = String(env.ALLOWED_ORIGIN || '*').trim();
+  if (configured === '*') {
+    return '*';
+  }
+
+  const origin = request.headers.get('origin');
+  if (!origin) {
+    return configured;
+  }
+
+  const regexSource = String(env.ALLOWED_ORIGIN_REGEX || '').trim();
+  if (regexSource) {
+    try {
+      const regex = new RegExp(regexSource, 'i');
+      return regex.test(origin) ? origin : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return origin === configured ? origin : null;
+}
+
+function corsHeaders(env, request) {
+  const headers = {
     'access-control-allow-methods': 'GET,POST,OPTIONS',
     'access-control-allow-headers': 'content-type',
     'content-type': 'application/json; charset=utf-8'
   };
+
+  const allowedOrigin = resolveAllowedOrigin(request, env);
+  if (allowedOrigin) {
+    headers['access-control-allow-origin'] = allowedOrigin;
+    headers.vary = 'Origin';
+  }
+
+  return headers;
 }
 
-function json(data, status, env) {
+function json(data, status, env, request) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders(env)
+    headers: corsHeaders(env, request)
   });
 }
 
-function withCors(response, env) {
+function withCors(response, env, request) {
   const headers = new Headers(response.headers);
-  const cors = corsHeaders(env);
+  const cors = corsHeaders(env, request);
   for (const [key, value] of Object.entries(cors)) {
     headers.set(key, value);
   }
@@ -125,16 +157,20 @@ export class VisitorCounterDO {
 export default {
   async fetch(request, env) {
     if (!env?.VISITOR_COUNTER) {
-      return json({ ok: false, error: 'Durable Object binding VISITOR_COUNTER is missing' }, 500, env);
+      return json({ ok: false, error: 'Durable Object binding VISITOR_COUNTER is missing' }, 500, env, request);
     }
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(env) });
+      const allowedOrigin = resolveAllowedOrigin(request, env);
+      if (!allowedOrigin) {
+        return new Response(null, { status: 403 });
+      }
+      return new Response(null, { status: 204, headers: corsHeaders(env, request) });
     }
 
     const id = env.VISITOR_COUNTER.idFromName('global');
     const stub = env.VISITOR_COUNTER.get(id);
     const response = await stub.fetch(request);
-    return withCors(response, env);
+    return withCors(response, env, request);
   }
 };

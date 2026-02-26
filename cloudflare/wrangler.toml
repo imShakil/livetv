@@ -13,4 +13,5 @@ new_sqlite_classes = ["VisitorCounterDO"]
 
 [vars]
 ALLOWED_ORIGIN = "https://bdixtv.mhosen.com"
+ALLOWED_ORIGIN_REGEX = '^https?://([a-z0-9-]+\.)*mhosen\.com(:\d+)?$'
 VISITOR_TTL_SECONDS = "180"
