@@ -10,6 +10,7 @@ import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import AdSlot from '@/components/AdSlot';
 import useChannelFilteringPagination from '@/hooks/useChannelFilteringPagination';
 import { logEvent } from '@/utils/telemetry';
+import { getHotChannels } from '@/utils/hotChannels';
 
 const ENABLE_STICKY_PLAYER = false; // Toggle sticky player feature
 
@@ -25,6 +26,17 @@ export default function ChannelBrowser({
   const [showStickyPlayer, setShowStickyPlayer] = useState(true);
 
   const showAds = adsConfig?.enabled || false;
+  const hotChannels = useMemo(() => getHotChannels(channels), [channels]);
+  const [hotPage, setHotPage] = useState(1);
+  const hotPageSize = 6;
+  const hotTotalPages = Math.max(1, Math.ceil(hotChannels.length / hotPageSize));
+  const hotPagedChannels = useMemo(() => {
+    const start = (hotPage - 1) * hotPageSize;
+    return hotChannels.slice(start, start + hotPageSize);
+  }, [hotChannels, hotPage]);
+  const hotRangeStart = hotChannels.length ? (hotPage - 1) * hotPageSize + 1 : 0;
+  const hotRangeEnd = hotChannels.length ? Math.min(hotPage * hotPageSize, hotChannels.length) : 0;
+
   const {
     query,
     setQuery,
@@ -40,12 +52,24 @@ export default function ChannelBrowser({
     rangeEnd
   } = useChannelFilteringPagination({ channels });
 
+  const shouldShowHotChannels = hotChannels.length > 0;
+
   useEffect(() => {
     if (!selectedChannel && channels.length) {
       setSelectedChannel(channels[0]);
       setAutoplay(false); // Disable autoplay for initial channel
     }
   }, [channels, selectedChannel]);
+
+  useEffect(() => {
+    setHotPage(1);
+  }, [channels]);
+
+  useEffect(() => {
+    if (hotPage > hotTotalPages) {
+      setHotPage(hotTotalPages);
+    }
+  }, [hotPage, hotTotalPages]);
 
   const handleSelect = (channel) => {
     setSelectedChannel(channel);
@@ -90,6 +114,31 @@ export default function ChannelBrowser({
           }}
         />
       </section>
+
+      {shouldShowHotChannels ? (
+        <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-ink sm:text-base">Hot Channels</h2>
+              <p className="text-[11px] text-steel sm:text-xs">Sports and major event picks</p>
+            </div>
+            <ChannelGrid
+              channels={hotPagedChannels}
+              selectedChannel={selectedChannel}
+              onSelect={handleSelect}
+            />
+            <PaginationFooter
+              page={hotPage}
+              totalPages={hotTotalPages}
+              rangeStart={hotRangeStart}
+              rangeEnd={hotRangeEnd}
+              totalCount={hotChannels.length}
+              onPrevious={() => setHotPage((value) => Math.max(1, value - 1))}
+              onNext={() => setHotPage((value) => Math.min(hotTotalPages, value + 1))}
+            />
+          </div>
+        </section>
+      ) : null}
       <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
         <ChannelFiltersBar
           query={query}
