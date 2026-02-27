@@ -48,7 +48,21 @@ export default function RootLayout({ children }) {
           gtag('js', new Date());
           gtag('config', 'G-YY76ZPGRHG');
         `}</script>
-        <script src="https://pl28799366.effectivegatecpm.com/c7/21/73/c721736c340f6ebd2f5dc866ecf0d945.js"></script>
+        <script>{`
+          (function () {
+            var host = window.location.hostname;
+            var adScriptByHost = {
+              'bdixtv.mhosen.com': 'https://ceasepancreas.com/c7/21/73/c721736c340f6ebd2f5dc866ecf0d945.js',
+              'livetv.imshakil.online': 'https://ceasepancreas.com/30/6c/d6/306cd6330dd79993a3b6b37c01f7dfd3.js'
+            };
+            var adSrc = adScriptByHost[host];
+            if (!adSrc) return;
+            var script = document.createElement('script');
+            script.src = adSrc;
+            script.async = true;
+            document.head.appendChild(script);
+          })();
+        `}</script>
       </head>
       <body>
         <SiteHeader />
