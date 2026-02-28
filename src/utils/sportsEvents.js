@@ -74,6 +74,33 @@ function addHours(date, hours) {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
 
+function getCricketMatchDurationHours(event) {
+  const searchable = [
+    event?.league,
+    event?.homeTeam,
+    event?.awayTeam
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (searchable.includes('test')) {
+    // Use one-day live window for multi-day test matches.
+    return 10;
+  }
+  if (searchable.includes('odi') || searchable.includes('one day')) {
+    return 8;
+  }
+  if (searchable.includes('t10')) {
+    return 3;
+  }
+  if (searchable.includes('t20') || searchable.includes('t 20')) {
+    return 4;
+  }
+
+  return 5;
+}
+
 export function readGeneratedSportsEvents(payload) {
   const rawEvents = Array.isArray(payload?.events) ? payload.events : [];
 
@@ -147,7 +174,9 @@ export function isPopularFootballEvent(event) {
 
 export function getEventStatus(event, now = new Date()) {
   const start = new Date(event.startTimeUtc);
-  const end = addHours(start, event.sport === 'cricket' ? 4 : 2);
+  const sport = String(event?.sport || '').toLowerCase();
+  const durationHours = sport === 'cricket' ? getCricketMatchDurationHours(event) : 2;
+  const end = addHours(start, durationHours);
 
   if (now >= start && now < end) {
     return 'live';

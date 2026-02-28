@@ -41,6 +41,9 @@ export default function SportsEventsPage() {
   const filteredEvents = useMemo(() => {
     const normalizedQuery = query.toLowerCase().trim();
     return events.filter((event) => {
+      if (getEventStatus(event) === 'finished') {
+        return false;
+      }
       if (!matchesSportFilter(event, activeFilter)) {
         return false;
       }

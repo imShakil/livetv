@@ -52,7 +52,9 @@ export default function DailySportsEventsCarousel({
   const { events, isLoading } = useDailySportsEvents();
 
   const filteredEvents = useMemo(() => {
-    const sportFiltered = events.filter((event) => matchesSportFilter(event, activeFilter));
+    const sportFiltered = events.filter((event) => (
+      matchesSportFilter(event, activeFilter) && getEventStatus(event) !== 'finished'
+    ));
     if (activeFilter === 'football') {
       const popularOnly = sportFiltered.filter((event) => isPopularFootballEvent(event));
       const finalFootballEvents = popularOnly.length > 0 ? popularOnly : sportFiltered;
