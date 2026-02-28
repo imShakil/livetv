@@ -148,23 +148,27 @@ export default function DailySportsEventsCarousel({
               key={event.id}
               className="min-w-[250px] snap-start rounded-xl border border-steel/20 bg-white p-3 md:min-w-[280px]"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">{event.league}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${statusClass}`}>
-                  {status}
-                </span>
-              </div>
-              <p className="pt-2 text-sm font-semibold text-ink">{event.homeTeam}</p>
-              <p className="text-xs font-medium text-steel">vs</p>
-              <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
-              <p className="pt-2 text-xs text-steel">{formatTime(event.startTimeUtc)}</p>
-              {Array.isArray(event.channels) && event.channels.length > 0 ? (
-                <p className="text-xs text-steel break-words">
-                  Channels: {event.channels.join(', ')}
-                </p>
-              ) : (
-                <p className="text-xs text-steel/70">Channels: TBA</p>
-              )}
+              <Link href={`/event?id=${encodeURIComponent(event.id)}`} className="block">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">{event.league}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${statusClass}`}>
+                    {status}
+                  </span>
+                </div>
+                <p className="pt-2 text-sm font-semibold text-ink">{event.homeTeam}</p>
+                <p className="text-xs font-medium text-steel">vs</p>
+                <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
+                <p className="pt-2 text-xs text-steel">{formatTime(event.startTimeUtc)}</p>
+                {Array.isArray(event.channels) && event.channels.length > 0 ? (
+                  <p className="text-xs text-steel break-words">
+                    Channels: {event.channels.slice(0, 2).join(', ')}
+                    {event.channels.length > 2 ? ` +${event.channels.length - 2} more` : ''}
+                  </p>
+                ) : (
+                  <p className="text-xs text-steel/70">Channels: TBA</p>
+                )}
+                <p className="pt-1 text-xs font-semibold text-sea">View details</p>
+              </Link>
             </article>
           );
         })}

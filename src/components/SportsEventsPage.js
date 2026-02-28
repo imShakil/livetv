@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
 import { getEventStatus } from '@/utils/sportsEvents';
@@ -95,23 +96,27 @@ export default function SportsEventsPage() {
               key={event.id}
               className="space-y-2 rounded-xl border border-steel/20 bg-white/90 p-3.5 shadow-card"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">{event.league}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${statusClass}`}>
-                  {statusText}
-                </span>
-              </div>
-              <p className="text-sm font-semibold text-ink">{event.homeTeam}</p>
-              <p className="text-xs text-steel">vs</p>
-              <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
-              <p className="text-xs text-steel">{formatDateTime(event.startTimeUtc)}</p>
-              {Array.isArray(event.channels) && event.channels.length > 0 ? (
-                <p className="text-xs text-steel break-words">
-                  Channels: {event.channels.join(', ')}
-                </p>
-              ) : (
-                <p className="text-xs text-steel/70">Channels: TBA</p>
-              )}
+              <Link href={`/event?id=${encodeURIComponent(event.id)}`} className="block space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">{event.league}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${statusClass}`}>
+                    {statusText}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-ink">{event.homeTeam}</p>
+                <p className="text-xs text-steel">vs</p>
+                <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
+                <p className="text-xs text-steel">{formatDateTime(event.startTimeUtc)}</p>
+                {Array.isArray(event.channels) && event.channels.length > 0 ? (
+                  <p className="text-xs text-steel break-words">
+                    Channels: {event.channels.slice(0, 3).join(', ')}
+                    {event.channels.length > 3 ? ` +${event.channels.length - 3} more` : ''}
+                  </p>
+                ) : (
+                  <p className="text-xs text-steel/70">Channels: TBA</p>
+                )}
+                <p className="text-xs font-semibold text-sea">View details</p>
+              </Link>
             </article>
           );
         })}

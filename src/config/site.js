@@ -25,3 +25,8 @@ export const EVENTS_PAGE_METADATA = {
   title: 'Daily Sports Events | BDIX IPTV',
   description: 'Track today\'s cricket and football event schedule in your local timezone.'
 };
+
+export const EVENT_DETAILS_PAGE_METADATA = {
+  title: 'Event Details | BDIX IPTV',
+  description: 'View full sports event details with full channel availability.'
+};
