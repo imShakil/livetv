@@ -91,9 +91,9 @@ export default function SportsEventsPage() {
                     {statusText}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-ink">{event.homeTeam}</p>
-                <p className="text-xs text-steel">vs</p>
-                <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
+                <p className="text-sm font-semibold leading-snug text-ink break-words">
+                  {event.homeTeam} <span className="text-steel">vs</span> {event.awayTeam}
+                </p>
                 <p className="text-xs text-steel">{formatDateTime(event.startTimeUtc)}</p>
                 {Array.isArray(event.channels) && event.channels.length > 0 ? (
                   <p className="text-xs text-steel break-words">
