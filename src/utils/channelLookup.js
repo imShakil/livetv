@@ -8,6 +8,7 @@ function normalize(value) {
 function canonicalize(value) {
   return normalize(value)
     .replace(/\bsuper\s+sports?\b/g, 'supersport')
+    .replace(/\bsupersports\b/g, 'supersport')
     .replace(/\bastro\s+supersport\b/g, 'supersport')
     .replace(/\bsky\s+sport\b/g, 'sky sports')
     .replace(/\bsky\s+sports?\b/g, 'sky sports')
@@ -204,47 +205,98 @@ export function findBestChannelMatch(channelName, channels, { excludeKeys = new 
   return bestScore >= minScore ? best : null;
 }
 
+function splitByDelimiters(name) {
+  return String(name || '')
+    .split(/[,/|;]+|\s+\+\s+|\s+and\s+/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function splitByBrandBoundaries(name) {
+  const raw = String(name || '').trim();
+  if (!raw) {
+    return [];
+  }
+
+  const canonical = canonicalize(raw);
+  const tokens = canonical.split(' ').filter(Boolean);
+  if (tokens.length < 2) {
+    return [raw];
+  }
+
+  const brandStarts = [];
+  for (let i = 0; i < tokens.length; i += 1) {
+    if (tokens[i] === 'supersport') {
+      brandStarts.push(i);
+      continue;
+    }
+    if (tokens[i] === 'sky' && tokens[i + 1] === 'sports') {
+      brandStarts.push(i);
+      continue;
+    }
+    if (tokens[i] === 'beinsports') {
+      brandStarts.push(i);
+      continue;
+    }
+    if (tokens[i] === 'starsports') {
+      brandStarts.push(i);
+      continue;
+    }
+  }
+
+  if (brandStarts.length <= 1) {
+    return [raw];
+  }
+
+  const expanded = [];
+  for (let i = 0; i < brandStarts.length; i += 1) {
+    const start = brandStarts[i];
+    const end = i + 1 < brandStarts.length ? brandStarts[i + 1] : tokens.length;
+    const part = tokens.slice(start, end).join(' ').trim();
+    if (part) {
+      expanded.push(part);
+    }
+  }
+
+  return expanded.length ? expanded : [raw];
+}
+
+function expandChannelNames(channelNames) {
+  const expanded = [];
+  for (const name of channelNames) {
+    const fromDelimiters = splitByDelimiters(name);
+    const baseParts = fromDelimiters.length ? fromDelimiters : [name];
+    for (const part of baseParts) {
+      const fragments = splitByBrandBoundaries(part);
+      for (const fragment of fragments) {
+        expanded.push(fragment);
+      }
+    }
+  }
+  return expanded;
+}
+
 export function findBestChannelMatches(channelNames, channels, { minScore = 75 } = {}) {
   if (!Array.isArray(channelNames) || channelNames.length === 0) {
     return [];
   }
+
+  const expandedNames = expandChannelNames(channelNames);
+
   if (!Array.isArray(channels) || channels.length === 0) {
-    return channelNames.map((name) => ({ name, match: null }));
+    return expandedNames.map((name) => ({ name, matches: [] }));
   }
 
-  const candidates = [];
-  for (let i = 0; i < channelNames.length; i += 1) {
-    const name = channelNames[i];
-    for (const channel of channels) {
-      const score = scoreChannelMatch(name, channel?.name);
-      if (score >= minScore) {
-        candidates.push({
-          index: i,
-          channel,
-          score,
-          key: channel?.id || `${channel?.name || ''}|${channel?.source || ''}`
-        });
-      }
-    }
-  }
+  return expandedNames.map((name) => {
+    const matches = channels
+      .map((channel) => ({
+        channel,
+        score: scoreChannelMatch(name, channel?.name)
+      }))
+      .filter((entry) => entry.score >= minScore)
+      .sort((a, b) => b.score - a.score)
+      .map((entry) => entry.channel);
 
-  candidates.sort((a, b) => b.score - a.score);
-
-  const usedIndexes = new Set();
-  const usedKeys = new Set();
-  const chosen = new Map();
-
-  for (const candidate of candidates) {
-    if (usedIndexes.has(candidate.index) || usedKeys.has(candidate.key)) {
-      continue;
-    }
-    usedIndexes.add(candidate.index);
-    usedKeys.add(candidate.key);
-    chosen.set(candidate.index, candidate.channel);
-  }
-
-  return channelNames.map((name, index) => ({
-    name,
-    match: chosen.get(index) || null
-  }));
+    return { name, matches };
+  });
 }
