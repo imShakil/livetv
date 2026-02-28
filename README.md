@@ -82,4 +82,4 @@ Implemented client-side observability:
 
 ## Live URL
 
-The site is live at: [https://bdixtv.mhosen.com](https://bdixtv.mhosen.com)
+The site is live at: [http://livetv.imshakil.online](http://livetv.imshakil.online)
