@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import ChannelGrid from '@/components/ChannelGrid';
 import ChannelFiltersBar from '@/components/ChannelFiltersBar';
-import HeroHeader from '@/components/HeroHeader';
 import DailySportsEventsCarousel from '@/components/DailySportsEventsCarousel';
 import PaginationFooter from '@/components/PaginationFooter';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -18,8 +17,6 @@ const ENABLE_STICKY_PLAYER = false; // Toggle sticky player feature
 export default function ChannelBrowser({
   channels,
   adsConfig,
-  eyebrow,
-  title,
   showDailyEvents = false
 }) {
   const [selectedChannel, setSelectedChannel] = useState(channels[0] || null);
@@ -55,6 +52,9 @@ export default function ChannelBrowser({
   } = useChannelFilteringPagination({ channels });
 
   const shouldShowHotChannels = hotChannels.length > 0;
+  const totalChannels = channels.length;
+  const filteredCount = filteredChannels.length;
+  const hasActiveFilters = query.trim().length > 0 || category !== 'all';
 
   useEffect(() => {
     if (!selectedChannel && channels.length) {
@@ -96,15 +96,7 @@ export default function ChannelBrowser({
     <div className="space-y-5 md:space-y-7">
 
       <section className="space-y-3 md:space-y-4">
-        {showDailyEvents ? (
-          <DailySportsEventsCarousel limit={8} />
-        ) : (
-          <HeroHeader
-            totalCount={channels.length}
-            eyebrow={eyebrow}
-            title={title}
-          />
-        )}
+        {showDailyEvents ? <DailySportsEventsCarousel limit={8} /> : null}
 
         {/* Ad Slot 1: Header Banner */}
         {showAds && adsConfig?.slots?.header?.enabled && <AdSlot slot="header" adsConfig={adsConfig} />}
@@ -146,6 +138,14 @@ export default function ChannelBrowser({
         </section>
       ) : null}
       <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold text-steel">Channel Browser</p>
+          <span className="rounded-full bg-sea/15 px-3 py-1 text-xs font-semibold text-sea">
+            Available: {totalChannels}
+            {hasActiveFilters ? ` · Filtered: ${filteredCount}` : ''}
+          </span>
+        </div>
+
         <ChannelFiltersBar
           query={query}
           onQueryChange={setQuery}

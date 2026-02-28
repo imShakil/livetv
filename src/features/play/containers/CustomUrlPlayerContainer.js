@@ -85,6 +85,9 @@ export default function CustomUrlPlayerPage() {
     rangeStart,
     rangeEnd
   } = useChannelFilteringPagination({ channels: playlistChannels });
+  const totalChannels = playlistChannels.length;
+  const filteredCount = filteredPlaylistChannels.length;
+  const hasActiveFilters = query.trim().length > 0 || category !== 'all';
 
   const playCustomUrl = useCallback(async ({ value, selectedType, name }) => {
     if (!value) {
@@ -245,6 +248,14 @@ export default function CustomUrlPlayerPage() {
 
         {playlistChannels.length > 0 ? (
           <section className="space-y-4 rounded-2xl border border-steel/20 bg-white/90 p-3.5 shadow-card md:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-steel">Channel Browser</p>
+              <span className="rounded-full bg-sea/15 px-3 py-1 text-xs font-semibold text-sea">
+                Available: {totalChannels}
+                {hasActiveFilters ? ` · Filtered: ${filteredCount}` : ''}
+              </span>
+            </div>
+
             <ChannelFiltersBar
               query={query}
               onQueryChange={setQuery}

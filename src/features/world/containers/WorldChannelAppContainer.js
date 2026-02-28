@@ -42,8 +42,7 @@ export default function WorldChannelApp() {
       <ChannelBrowser
         channels={channels}
         adsConfig={adsConfig}
-        eyebrow="Global Playlist"
-        title="World IPTV"
+        showDailyEvents
       />
     </main>
   );

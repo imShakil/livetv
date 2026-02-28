@@ -38,8 +38,7 @@ export default function FeaturingChannelApp() {
       <ChannelBrowser
         channels={channels}
         adsConfig={adsConfig}
-        eyebrow="Featured Only"
-        title="Featuring"
+        showDailyEvents
       />
     </main>
   );
