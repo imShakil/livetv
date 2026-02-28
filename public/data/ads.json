@@ -1,5 +1,49 @@
 {
   "enabled": true,
+  "hosts": {
+    "livetv.imshakil.online": {
+      "slots": {
+        "eventTop": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "f5b3dd31223867445ffbc26d9c3d0f27",
+          "format": "iframe",
+          "width": 728,
+          "height": 90,
+          "hideOnMobile": true
+        },
+        "eventBottom": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "f8ac512686840774355af7ab4d2a7f76",
+          "format": "iframe",
+          "width": 300,
+          "height": 250
+        }
+      }
+    },
+    "bdixtv.mhosen.com": {
+      "slots": {
+        "eventTop": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "a3733e34f2a77d008f3e7aae0d74c258",
+          "format": "iframe",
+          "width": 728,
+          "height": 90,
+          "hideOnMobile": true
+        },
+        "eventBottom": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "92dd647b5220ff89e37c8c6f22fd6424",
+          "format": "iframe",
+          "width": 300,
+          "height": 250
+        }
+      }
+    }
+  },
   "slots": {
     "header": {
       "enabled": false,
@@ -21,6 +65,13 @@
       "enabled": true,
       "slot": "8250402676",
       "format": "horizontal"
+    },
+    "eventTop": {
+      "enabled": false,
+      "format": "horizontal"
+    },
+    "eventBottom": {
+      "enabled": false
     }
   }
 }

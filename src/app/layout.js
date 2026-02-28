@@ -8,9 +8,6 @@ export const metadata = {
   title: SITE_BRANDING.metadataTitle,
   description: SITE_BRANDING.description,
   keywords: ['IPTV', 'live tv', 'm3u8', 'streaming', 'bdix tv'],
-  other: {
-    'google-adsense-account': 'ca-pub-2449944472030683'
-  },
   openGraph: {
     title: SITE_BRANDING.metadataTitle,
     description: SITE_BRANDING.description,
@@ -33,11 +30,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2449944472030683"
-          crossOrigin="anonymous"
-        />
         <script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-YY76ZPGRHG"

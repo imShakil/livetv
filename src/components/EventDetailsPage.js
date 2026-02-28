@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import AdSlot from '@/components/AdSlot';
+import useAdsConfig from '@/hooks/useAdsConfig';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
 import useChannelCatalog from '@/hooks/useChannelCatalog';
 import { getEventStatus } from '@/utils/sportsEvents';
@@ -23,6 +25,8 @@ function formatDateTime(utcString) {
 
 export default function EventDetailsPage() {
   const searchParams = useSearchParams();
+  const adsConfig = useAdsConfig();
+  const showAds = adsConfig?.enabled || false;
   const eventId = searchParams.get('id') || '';
   const { events, isLoading, source, error } = useDailySportsEvents({ internationalOnly: false });
   const { channels: catalogChannels } = useChannelCatalog();
@@ -71,6 +75,12 @@ export default function EventDetailsPage() {
         ) : null}
       </section>
 
+      {showAds && adsConfig?.slots?.eventTop?.enabled ? (
+        <section className="rounded-2xl border border-steel/20 bg-white/90 p-3 shadow-card">
+          <AdSlot slot="eventTop" adsConfig={adsConfig} className="min-h-[50px] md:min-h-[90px]" />
+        </section>
+      ) : null}
+
       {event ? (
         <section className="space-y-3 rounded-2xl border border-steel/20 bg-white/90 p-4 shadow-card">
           <div className="flex items-center justify-between gap-2">
@@ -117,6 +127,12 @@ export default function EventDetailsPage() {
               <p className="text-sm text-steel">No channels listed.</p>
             )}
           </div>
+        </section>
+      ) : null}
+
+      {showAds && adsConfig?.slots?.eventBottom?.enabled ? (
+        <section className="rounded-2xl border border-steel/20 bg-white/90 p-3 shadow-card">
+          <AdSlot slot="eventBottom" adsConfig={adsConfig} className="min-h-[250px]" />
         </section>
       ) : null}
     </main>
