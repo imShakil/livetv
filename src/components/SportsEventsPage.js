@@ -10,6 +10,17 @@ const FILTERS = [
   { key: 'football', label: 'Football' }
 ];
 
+function matchesSportFilter(event, activeFilter) {
+  if (activeFilter === 'all') {
+    return true;
+  }
+  const sport = String(event?.sport || '').toLowerCase();
+  if (activeFilter === 'football') {
+    return sport === 'football' || sport === 'soccer';
+  }
+  return sport === activeFilter;
+}
+
 function formatDateTime(utcString) {
   const date = new Date(utcString);
   return new Intl.DateTimeFormat(undefined, {
@@ -24,9 +35,7 @@ export default function SportsEventsPage() {
   const { events, isLoading, source, error } = useDailySportsEvents({ internationalOnly: false });
 
   const filteredEvents = useMemo(
-    () => activeFilter === 'all'
-      ? events
-      : events.filter((event) => event.sport === activeFilter),
+    () => events.filter((event) => matchesSportFilter(event, activeFilter)),
     [activeFilter, events]
   );
 
@@ -97,9 +106,8 @@ export default function SportsEventsPage() {
               <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
               <p className="text-xs text-steel">{formatDateTime(event.startTimeUtc)}</p>
               {Array.isArray(event.channels) && event.channels.length > 0 ? (
-                <p className="text-xs text-steel">
-                  Channels: {event.channels.slice(0, 3).join(', ')}
-                  {event.channels.length > 3 ? ` +${event.channels.length - 3} more` : ''}
+                <p className="text-xs text-steel break-words">
+                  Channels: {event.channels.join(', ')}
                 </p>
               ) : (
                 <p className="text-xs text-steel/70">Channels: TBA</p>

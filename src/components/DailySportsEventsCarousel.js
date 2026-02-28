@@ -11,6 +11,17 @@ const FILTERS = [
   { key: 'football', label: 'Football' }
 ];
 
+function matchesSportFilter(event, activeFilter) {
+  if (activeFilter === 'all') {
+    return true;
+  }
+  const sport = String(event?.sport || '').toLowerCase();
+  if (activeFilter === 'football') {
+    return sport === 'football' || sport === 'soccer';
+  }
+  return sport === activeFilter;
+}
+
 function formatTime(utcString) {
   return new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -45,9 +56,7 @@ export default function DailySportsEventsCarousel({
   const { events, isLoading, source } = useDailySportsEvents();
 
   const filteredEvents = useMemo(() => {
-    const sportFiltered = activeFilter === 'all'
-      ? events
-      : events.filter((event) => event.sport === activeFilter);
+    const sportFiltered = events.filter((event) => matchesSportFilter(event, activeFilter));
     return sportFiltered.slice(0, limit);
   }, [activeFilter, events, limit]);
 
@@ -150,9 +159,8 @@ export default function DailySportsEventsCarousel({
               <p className="text-sm font-semibold text-ink">{event.awayTeam}</p>
               <p className="pt-2 text-xs text-steel">{formatTime(event.startTimeUtc)}</p>
               {Array.isArray(event.channels) && event.channels.length > 0 ? (
-                <p className="text-xs text-steel">
-                  {event.channels.slice(0, 2).join(', ')}
-                  {event.channels.length > 2 ? ` +${event.channels.length - 2}` : ''}
+                <p className="text-xs text-steel break-words">
+                  Channels: {event.channels.join(', ')}
                 </p>
               ) : (
                 <p className="text-xs text-steel/70">Channels: TBA</p>
