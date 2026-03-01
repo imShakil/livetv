@@ -41,6 +41,17 @@ body {
   font-family: "IBM Plex Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Prevent iOS input-focus auto zoom inside the app webview. */
+@supports (-webkit-touch-callout: none) {
+  @media (hover: none) and (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
 @layer utilities {
   .bg-white {
     background-color: rgba(10, 18, 36, 0.95) !important;
