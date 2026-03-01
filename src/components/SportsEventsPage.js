@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
-import { getEventStatus } from '@/utils/sportsEvents';
+import { filterOutUnpopularEvents, getEventStatus } from '@/utils/sportsEvents';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -22,13 +22,15 @@ function matchesSportFilter(event, activeFilter) {
   return sport === activeFilter;
 }
 
-function formatDateTime(utcString) {
-  const date = new Date(utcString);
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'short',
-    hour: 'numeric',
-    minute: '2-digit'
-  }).format(date);
+const HIDE_UNPOPULAR_EVENTS = true;
+const EVENT_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  hour: 'numeric',
+  minute: '2-digit'
+});
+
+function formatDateTimeFast(utcString) {
+  return EVENT_DATE_FORMATTER.format(new Date(utcString));
 }
 
 export default function SportsEventsPage() {
@@ -38,9 +40,13 @@ export default function SportsEventsPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const loadMoreRef = useRef(null);
   const { events, isLoading } = useDailySportsEvents({ internationalOnly: false });
+  const curatedEvents = useMemo(
+    () => (HIDE_UNPOPULAR_EVENTS ? filterOutUnpopularEvents(events) : events),
+    [events]
+  );
   const filteredEvents = useMemo(() => {
     const normalizedQuery = query.toLowerCase().trim();
-    return events.filter((event) => {
+    return curatedEvents.filter((event) => {
       if (getEventStatus(event) === 'finished') {
         return false;
       }
@@ -61,7 +67,7 @@ export default function SportsEventsPage() {
         .toLowerCase();
       return searchableText.includes(normalizedQuery);
     });
-  }, [activeFilter, events, query]);
+  }, [activeFilter, curatedEvents, query]);
 
   const visibleEvents = useMemo(
     () => filteredEvents.slice(0, visibleCount),
@@ -97,8 +103,8 @@ export default function SportsEventsPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-extrabold tracking-tight text-ink md:text-3xl">Daily Events Schedule</h1>
           <p className="text-xs font-semibold text-steel md:text-sm">
-            Total events: {events.length}
-            {filteredEvents.length !== events.length ? ` · Showing: ${filteredEvents.length}` : ''}
+            Total events: {curatedEvents.length}
+            {filteredEvents.length !== curatedEvents.length ? ` · Showing: ${filteredEvents.length}` : ''}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -158,7 +164,7 @@ export default function SportsEventsPage() {
                 <p className="text-sm font-semibold leading-snug text-ink break-words">
                   {event.homeTeam} <span className="text-steel">vs</span> {event.awayTeam}
                 </p>
-                <p className="text-xs text-steel">{formatDateTime(event.startTimeUtc)}</p>
+                <p className="text-xs text-steel">{formatDateTimeFast(event.startTimeUtc)}</p>
                 {Array.isArray(event.channels) && event.channels.length > 0 ? (
                   <p className="text-xs text-steel break-words">
                     Channels: {event.channels.slice(0, 3).join(', ')}

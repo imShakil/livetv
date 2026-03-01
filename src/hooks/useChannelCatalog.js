@@ -76,11 +76,16 @@ async function loadCatalog() {
   return inFlight;
 }
 
-export default function useChannelCatalog() {
+export default function useChannelCatalog({ enabled = true } = {}) {
   const [channels, setChannels] = useState(() => readSessionCacheChannels());
-  const [isLoading, setIsLoading] = useState(channels.length === 0);
+  const [isLoading, setIsLoading] = useState(enabled && channels.length === 0);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return undefined;
+    }
+
     let isActive = true;
 
     async function run() {
@@ -101,7 +106,7 @@ export default function useChannelCatalog() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [enabled]);
 
   return { channels, isLoading };
 }

@@ -10,17 +10,18 @@ import useChannelCatalog from '@/hooks/useChannelCatalog';
 import { getEventStatus } from '@/utils/sportsEvents';
 import { findBestChannelMatches } from '@/utils/channelLookup';
 
+const EVENT_DETAILS_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZoneName: 'short'
+});
+
 function formatDateTime(utcString) {
-  const date = new Date(utcString);
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short'
-  }).format(date);
+  return EVENT_DETAILS_DATE_FORMATTER.format(new Date(utcString));
 }
 
 export default function EventDetailsPage() {
@@ -29,12 +30,13 @@ export default function EventDetailsPage() {
   const showAds = adsConfig?.enabled || false;
   const eventId = searchParams.get('id') || '';
   const { events, isLoading, source, error } = useDailySportsEvents({ internationalOnly: false });
-  const { channels: catalogChannels } = useChannelCatalog();
-
   const event = useMemo(
     () => events.find((entry) => String(entry.id) === eventId),
     [eventId, events]
   );
+  const shouldLoadCatalog = Boolean(event?.channels?.length);
+  const { channels: catalogChannels } = useChannelCatalog({ enabled: shouldLoadCatalog });
+
   const channelMatches = useMemo(() => {
     if (!event || !Array.isArray(event.channels)) {
       return [];

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
-import { getEventStatus, isPopularFootballEvent } from '@/utils/sportsEvents';
+import { filterOutUnpopularEvents, getEventStatus, isPopularFootballEvent } from '@/utils/sportsEvents';
 
 const FILTERS = [
   { key: 'cricket', label: 'Cricket' },
@@ -19,10 +19,7 @@ function matchesSportFilter(event, activeFilter) {
 }
 
 function formatTime(utcString) {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit'
-  }).format(new Date(utcString));
+  return TIME_FORMATTER.format(new Date(utcString));
 }
 
 function formatStatus(event, now = new Date()) {
@@ -44,15 +41,25 @@ function formatStatus(event, now = new Date()) {
   return `Starts in ${hours}h`;
 }
 
+const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  hour: 'numeric',
+  minute: '2-digit'
+});
+const HIDE_UNPOPULAR_EVENTS = true;
+
 export default function DailySportsEventsCarousel({
   limit = 8
 }) {
   const [activeFilter, setActiveFilter] = useState('cricket');
   const trackRef = useRef(null);
   const { events, isLoading } = useDailySportsEvents();
+  const curatedEvents = useMemo(
+    () => (HIDE_UNPOPULAR_EVENTS ? filterOutUnpopularEvents(events) : events),
+    [events]
+  );
 
   const filteredEvents = useMemo(() => {
-    const sportFiltered = events.filter((event) => (
+    const sportFiltered = curatedEvents.filter((event) => (
       matchesSportFilter(event, activeFilter) && getEventStatus(event) !== 'finished'
     ));
     if (activeFilter === 'football') {
@@ -61,7 +68,7 @@ export default function DailySportsEventsCarousel({
       return finalFootballEvents.slice(0, limit);
     }
     return sportFiltered.slice(0, limit);
-  }, [activeFilter, events, limit]);
+  }, [activeFilter, curatedEvents, limit]);
 
   const scrollTrack = (direction) => {
     if (!trackRef.current) {

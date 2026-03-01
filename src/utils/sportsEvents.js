@@ -70,8 +70,47 @@ const POPULAR_FOOTBALL_KEYWORDS = [
   'psg'
 ];
 
+const GENERAL_POPULAR_EVENT_KEYWORDS = [
+  'world cup',
+  'champions league',
+  'premier league',
+  'la liga',
+  'serie a',
+  'bundesliga',
+  'ligue 1',
+  'mls',
+  'ipl',
+  'psl',
+  'bbl',
+  'cpl',
+  'icc',
+  'uefa',
+  'afc',
+  'fifa'
+];
+
 function addHours(date, hours) {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+}
+
+function normalizeSportName(sport) {
+  const value = String(sport || '').toLowerCase();
+  if (value === 'soccer') {
+    return 'football';
+  }
+  return value;
+}
+
+function getSearchableText(event) {
+  return [
+    event?.league,
+    event?.homeTeam,
+    event?.awayTeam,
+    event?.sport
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 }
 
 function getCricketMatchDurationHours(event) {
@@ -140,36 +179,61 @@ export function readGeneratedSportsEvents(payload) {
 
 export function filterInternationalSportsEvents(events) {
   return events.filter((event) => {
-    const searchableText = [
-      event?.sport,
-      event?.league,
-      event?.homeTeam,
-      event?.awayTeam
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
+    const searchableText = getSearchableText(event);
 
     return INTERNATIONAL_EVENT_KEYWORDS.some((keyword) => searchableText.includes(keyword));
   });
 }
 
 export function isPopularFootballEvent(event) {
-  const sport = String(event?.sport || '').toLowerCase();
-  if (sport !== 'football' && sport !== 'soccer') {
+  const sport = normalizeSportName(event?.sport);
+  if (sport !== 'football') {
     return false;
   }
 
-  const searchableText = [
-    event?.league,
-    event?.homeTeam,
-    event?.awayTeam
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
+  const searchableText = getSearchableText(event);
 
   return POPULAR_FOOTBALL_KEYWORDS.some((keyword) => searchableText.includes(keyword));
+}
+
+export function getEventPopularityScore(event) {
+  const sport = normalizeSportName(event?.sport);
+  const searchableText = getSearchableText(event);
+  const channelCount = Array.isArray(event?.channels) ? event.channels.length : 0;
+
+  let score = 0;
+
+  if (sport === 'football' || sport === 'cricket') {
+    score += 30;
+  } else {
+    score -= 10;
+  }
+
+  if (isPopularFootballEvent(event)) {
+    score += 35;
+  }
+
+  if (GENERAL_POPULAR_EVENT_KEYWORDS.some((keyword) => searchableText.includes(keyword))) {
+    score += 20;
+  }
+
+  if (channelCount > 0) {
+    score += 15;
+  }
+
+  if (channelCount >= 2) {
+    score += 10;
+  }
+
+  if (searchableText.includes('tba') || searchableText.includes('unknown')) {
+    score -= 10;
+  }
+
+  return score;
+}
+
+export function filterOutUnpopularEvents(events, { minScore = 20 } = {}) {
+  return events.filter((event) => getEventPopularityScore(event) >= minScore);
 }
 
 export function getEventStatus(event, now = new Date()) {
