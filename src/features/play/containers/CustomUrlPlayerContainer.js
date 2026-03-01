@@ -60,22 +60,6 @@ function getQueryParam(search, key) {
   return '';
 }
 
-function isM3uPlaylistUrl(value) {
-  return /\.m3u([?#]|$)/i.test(value);
-}
-
-function isLikelyMediaSegmentUrl(value) {
-  return /\.(ts|m4s|mp4|m4a|aac|vtt|webvtt)([?#]|$)/i.test(value);
-}
-
-function isLikelyChannelPlaylist(parsedChannels) {
-  if (!Array.isArray(parsedChannels) || parsedChannels.length < 2) {
-    return false;
-  }
-
-  return parsedChannels.every((channel) => !isLikelyMediaSegmentUrl(channel?.source || ''));
-}
-
 export default function CustomUrlPlayerPage() {
   const [customUrl, setCustomUrl] = useState('');
   const [customType, setCustomType] = useState('auto');
@@ -113,6 +97,13 @@ export default function CustomUrlPlayerPage() {
   const filteredCount = filteredPlaylistChannels.length;
   const hasActiveFilters = query.trim().length > 0 || category !== 'all';
 
+  const resetPlaylistState = useCallback(() => {
+    setPlaylistChannels([]);
+    setQuery('');
+    setCategory('all');
+    setPage(1);
+  }, [setCategory, setPage, setQuery]);
+
   const playCustomUrl = useCallback(async ({ value, selectedType, name }) => {
     if (!value) {
       setCustomError('Enter a stream URL first.');
@@ -132,16 +123,12 @@ export default function CustomUrlPlayerPage() {
       return;
     }
 
-    const shouldTryPlaylistParse =
-      resolvedType === 'm3u8' &&
-      (isM3uPlaylistUrl(value) || selectedType === 'm3u8');
-
-    if (shouldTryPlaylistParse) {
+    if (resolvedType === 'm3u8') {
       setIsLoadingPlaylist(true);
       try {
         const parsedChannels = await loadPlaylistChannelsFromUrl(value);
 
-        if (isLikelyChannelPlaylist(parsedChannels)) {
+        if (Array.isArray(parsedChannels) && parsedChannels.length > 0) {
           const nameMatch = name
             ? parsedChannels.find((channel) => channel.name?.trim() === name)
             : null;
@@ -157,15 +144,9 @@ export default function CustomUrlPlayerPage() {
       } finally {
         setIsLoadingPlaylist(false);
       }
-    } else {
-      setPlaylistChannels([]);
-      setQuery('');
-      setCategory('all');
-      setPage(1);
-      setIsLoadingPlaylist(false);
     }
 
-    setPlaylistChannels([]);
+    resetPlaylistState();
     setSelectedChannel({
       id: `custom-url-${Date.now()}`,
       name: name || 'Custom URL Stream',
@@ -180,7 +161,7 @@ export default function CustomUrlPlayerPage() {
     setCustomError('');
     logEvent('custom_url_played', { type: resolvedType });
     void maybeShowInterstitial('channelSwitch');
-  }, [maybeShowInterstitial, setCategory, setPage, setQuery]);
+  }, [maybeShowInterstitial, resetPlaylistState, setCategory, setPage, setQuery]);
 
   const handlePlayCustomUrl = async () => {
     await playCustomUrl({

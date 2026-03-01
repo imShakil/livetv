@@ -1,12 +1,10 @@
 export const SITE_BRANDING = {
-  eyebrow: 'Just dekho!',
   title: 'Dekho Prime',
   tagline: 'Just dekho!',
   metadataTitle: 'Dekho Prime | Live TV & Sports Streaming',
   description:
     'Dekho Prime lets you watch live TV channels, sports events, and custom stream URLs in one smooth streaming experience.',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://livetv.imshakil.online',
-  logoPath: '/uploads/dekho-prime-horizontal-logo.png',
   iconPath: '/uploads/dekho-prime-512x512.png',
   ogImagePath: '/uploads/dekho-prime-og-1200x630.png',
   keywords: [
@@ -33,13 +31,11 @@ export const PLAY_PAGE_METADATA = {
 
 export const FEATURING_PAGE_METADATA = {
   title: 'Featuring Channels',
-  eyebrow: 'BDIX Server',
   description: 'Discover featured channels curated for fast and reliable watching.'
 };
 
 export const WORLD_PAGE_METADATA = {
   title: 'World IPTV',
-  eyebrow: 'Global Playlist',
   description: 'Browse global TV channels from public playlists in one place.'
 };
 

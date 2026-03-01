@@ -9,6 +9,46 @@ export const PLAYLIST_URL = process.env.NEXT_PUBLIC_PLAYLIST_URL || '';
 export const WORLD_PLAYLIST_URL = process.env.NEXT_PUBLIC_WORLD_PLAYLIST_URL || '';
 export const FEATURED_JSON_PLAYLIST_URL = process.env.NEXT_PUBLIC_FEATURED_JSON_PLAYLIST || '';
 
+function normalizePlaylistUrl(rawUrl) {
+  if (!rawUrl) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+
+    // Normalize GitHub raw refs URL:
+    // /owner/repo/refs/heads/main/file.m3u8 -> /owner/repo/main/file.m3u8
+    if (parsed.hostname === 'raw.githubusercontent.com') {
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      if (parts.length >= 6 && parts[2] === 'refs' && parts[3] === 'heads') {
+        const owner = parts[0];
+        const repo = parts[1];
+        const branch = parts[4];
+        const filePath = parts.slice(5).join('/');
+        parsed.pathname = `/${owner}/${repo}/${branch}/${filePath}`;
+        return parsed.toString();
+      }
+    }
+
+    // Normalize github.com/blob URL to raw URL.
+    if (parsed.hostname === 'github.com') {
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      if (parts.length >= 5 && parts[2] === 'blob') {
+        const owner = parts[0];
+        const repo = parts[1];
+        const branch = parts[3];
+        const filePath = parts.slice(4).join('/');
+        return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`;
+      }
+    }
+  } catch {
+    return rawUrl;
+  }
+
+  return rawUrl;
+}
+
 function normalizeCategory(category) {
   const cat = (category || 'Uncategorized').toLowerCase().trim();
   
@@ -87,14 +127,15 @@ export async function loadPlaylistChannelsFromUrl(url, options = {}) {
   }
 
   try {
-    const response = await fetch(url, options);
+    const normalizedUrl = normalizePlaylistUrl(url);
+    const response = await fetch(normalizedUrl, options);
 
     if (!response.ok) {
       throw new Error(`Failed to load playlist: ${response.status}`);
     }
 
     const text = await response.text();
-    const parsed = parseM3U8(text);
+    const parsed = parseM3U8(text, { baseUrl: normalizedUrl });
 
     // For large playlists, filter by popular categories
     let filtered = parsed;
