@@ -160,7 +160,7 @@ export default function DailySportsEventsCarousel({
               <Link href={`/event?id=${encodeURIComponent(event.id)}`} className="block">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">{event.league}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${statusClass}`}>
+                  <span className={`inline-flex min-h-5 items-center justify-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold leading-none ${statusClass}`}>
                     {status}
                   </span>
                 </div>
