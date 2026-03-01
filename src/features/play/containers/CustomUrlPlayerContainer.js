@@ -128,15 +128,18 @@ export default function CustomUrlPlayerPage() {
       try {
         const parsedChannels = await loadPlaylistChannelsFromUrl(value);
 
-        if (Array.isArray(parsedChannels) && parsedChannels.length > 0) {
+        if (Array.isArray(parsedChannels) && parsedChannels.length > 1) {
           const nameMatch = name
-            ? parsedChannels.find((channel) => channel.name?.trim() === name)
+            ? parsedChannels.find((channel) => channel.name?.trim().toLowerCase() === name.trim().toLowerCase())
             : null;
+          const selectedFromPlaylist = nameMatch
+            ? nameMatch
+            : (name ? { ...parsedChannels[0], name } : parsedChannels[0]);
           setPlaylistChannels(parsedChannels);
           setQuery('');
           setCategory('all');
           setPage(1);
-          setSelectedChannel(nameMatch || parsedChannels[0]);
+          setSelectedChannel(selectedFromPlaylist);
           setCustomError('');
           logEvent('custom_playlist_loaded', { count: parsedChannels.length });
           return;
