@@ -6,6 +6,7 @@ import PaginationFooter from '@/components/PaginationFooter';
 import PlayerWithSidebar from '@/components/PlayerWithSidebar';
 import ChannelGrid from '@/components/ChannelGrid';
 import AdSlot from '@/components/AdSlot';
+import InlineLoader from '@/components/InlineLoader';
 import useAdsConfig from '@/hooks/useAdsConfig';
 import useChannelFilteringPagination from '@/hooks/useChannelFilteringPagination';
 import useNativeAdActions from '@/hooks/useNativeAdActions';
@@ -239,9 +240,18 @@ export default function CustomUrlPlayerPage() {
                   disabled={isLoadingPlaylist}
                   className="rounded-lg bg-sea px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0089d6] disabled:opacity-70"
                 >
-                  {isLoadingPlaylist ? 'Loading playlist...' : 'Play IPTV'}
+                  {isLoadingPlaylist ? (
+                    <span className="inline-flex items-center">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/90 border-r-transparent" />
+                    </span>
+                  ) : 'Play IPTV'}
                 </button>
               </div>
+              {isLoadingPlaylist ? (
+                <div className="py-1">
+                  <InlineLoader size="sm" />
+                </div>
+              ) : null}
               {customError ? <p className="text-xs text-rose-700">{customError}</p> : null}
             </div>
           ) : null}

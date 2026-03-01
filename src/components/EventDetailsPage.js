@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdSlot from '@/components/AdSlot';
+import InlineLoader from '@/components/InlineLoader';
 import useAdsConfig from '@/hooks/useAdsConfig';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
 import useChannelCatalog from '@/hooks/useChannelCatalog';
@@ -59,7 +60,9 @@ export default function EventDetailsPage() {
           ← Back to events
         </Link>
         {isLoading ? (
-          <p className="pt-3 text-sm text-steel">Loading event details...</p>
+          <div className="flex justify-center pt-4">
+            <InlineLoader />
+          </div>
         ) : null}
         {!isLoading && source === 'unavailable' ? (
           <p className="pt-3 text-sm text-rose-700">
@@ -80,6 +83,15 @@ export default function EventDetailsPage() {
           adsConfig={adsConfig}
           className="rounded-2xl border border-steel/20 bg-white/90 p-3 shadow-card"
         />
+      ) : null}
+
+      {isLoading ? (
+        <section className="space-y-3 rounded-2xl border border-steel/20 bg-white/90 p-4 shadow-card">
+          <div className="h-3 w-28 animate-pulse rounded bg-steel/20" />
+          <div className="h-7 w-4/5 animate-pulse rounded bg-steel/20" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-steel/15" />
+          <div className="h-24 animate-pulse rounded-lg bg-steel/10" />
+        </section>
       ) : null}
 
       {event ? (
@@ -130,7 +142,7 @@ export default function EventDetailsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-steel">No channels listed.</p>
+              <p className="text-sm text-steel">Not Available!</p>
             )}
           </div>
         </section>

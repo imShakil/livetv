@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
+import InlineLoader from '@/components/InlineLoader';
 import useDailySportsEvents from '@/hooks/useDailySportsEvents';
 import { filterOutUnpopularEvents, getEventStatus, isPopularFootballEvent } from '@/utils/sportsEvents';
 
@@ -134,8 +135,10 @@ export default function DailySportsEventsCarousel({
       </div>
 
       {isLoading ? (
-        <div className="rounded-xl border border-steel/15 bg-white/75 p-3 text-sm text-steel">
-          Loading today&apos;s events...
+        <div className="rounded-xl border border-steel/15 bg-white/75 p-3">
+          <div className="flex justify-center">
+            <InlineLoader size="sm" />
+          </div>
         </div>
       ) : null}
 
