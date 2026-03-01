@@ -138,10 +138,10 @@ export default function SportsEventsPage() {
           const status = getEventStatus(event);
           const statusText = status === 'live' ? 'Live' : status === 'finished' ? 'FT' : 'Upcoming';
           const statusClass = status === 'live'
-            ? 'bg-rose-100 text-rose-700'
+            ? 'bg-ember/20 text-ember'
             : status === 'finished'
-              ? 'bg-slate-100 text-slate-600'
-              : 'bg-amber-100 text-amber-700';
+              ? 'bg-steel/20 text-steel'
+              : 'bg-sea/20 text-sea';
 
           return (
             <article

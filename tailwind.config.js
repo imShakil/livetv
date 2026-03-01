@@ -10,14 +10,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: '#102134',
-        steel: '#385170',
-        sea: '#4fa3a5',
-        sand: '#f4efe8',
-        ember: '#ff7f50'
+        ink: '#FFFFFF',
+        steel: '#A0ACC0',
+        sea: '#00A3FF',
+        sand: '#050B1C',
+        ember: '#FF8A00'
       },
       boxShadow: {
-        card: '0 15px 35px -20px rgba(16, 33, 52, 0.45)'
+        card: '0 16px 36px -22px rgba(0, 163, 255, 0.45)'
       }
     }
   },

@@ -22,7 +22,7 @@ export default function ChannelCard({ channel, isActive, onSelect }) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[11px] font-semibold tracking-wide text-steel">
+          <div className="flex h-full w-full items-center justify-center text-[11px] font-semibold tracking-wide text-ember">
             LIVE
           </div>
         )}

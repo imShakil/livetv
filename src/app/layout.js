@@ -74,7 +74,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#0891b2" />
+        <meta name="theme-color" content="#050B1C" />
         <meta name="apple-mobile-web-app-title" content={SITE_BRANDING.title} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }} />
         <script

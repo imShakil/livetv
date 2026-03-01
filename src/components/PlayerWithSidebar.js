@@ -37,10 +37,10 @@ export default function PlayerWithSidebar({
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel/80">Now Playing</p>
               <div className="flex items-center gap-1.5">
                 {selectedChannel ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-rose-700">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-ember/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-ember">
                     <span className="relative inline-flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ember opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-ember" />
                     </span>
                     Live
                   </span>
@@ -61,7 +61,7 @@ export default function PlayerWithSidebar({
                 type="button"
                 onClick={onRewardedCtaClick}
                 disabled={isRewardedCtaLoading}
-                className="mt-2 inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-steel disabled:opacity-70"
+                className="mt-2 inline-flex items-center rounded-full bg-ember px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-[#e57d00] disabled:opacity-70"
               >
                 {isRewardedCtaLoading ? 'Loading ad...' : rewardedCtaLabel}
               </button>

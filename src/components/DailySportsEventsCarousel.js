@@ -137,10 +137,10 @@ export default function DailySportsEventsCarousel({
           const status = formatStatus(event);
           const isLive = status === 'Live';
           const statusClass = isLive
-            ? 'bg-rose-100 text-rose-700'
+            ? 'bg-ember/20 text-ember'
             : status === 'FT'
-              ? 'bg-slate-100 text-slate-600'
-              : 'bg-amber-100 text-amber-700';
+              ? 'bg-steel/20 text-steel'
+              : 'bg-sea/20 text-sea';
 
           return (
             <article

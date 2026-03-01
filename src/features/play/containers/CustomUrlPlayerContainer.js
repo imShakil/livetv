@@ -253,7 +253,7 @@ export default function CustomUrlPlayerPage() {
                   type="button"
                   onClick={handlePlayCustomUrl}
                   disabled={isLoadingPlaylist}
-                  className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-steel"
+                  className="rounded-lg bg-sea px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0089d6] disabled:opacity-70"
                 >
                   {isLoadingPlaylist ? 'Loading playlist...' : 'Play IPTV'}
                 </button>
