@@ -9,7 +9,7 @@ import { isLikelyM3uSource, normalizeIframeSource } from '@/utils/sourceUtils';
 import { logEvent } from '@/utils/telemetry';
 
 const MAX_AUTO_RETRIES = 3;
-const RETRY_DELAYS_MS = [1500, 3000, 5000];
+const RETRY_DELAYS_MS = 1000;
 
 const MEDIA_ERROR_TEXT = {
   1: 'Playback was interrupted before the stream finished loading.',
@@ -235,7 +235,7 @@ export default function VideoPlayer({ channel, autoplay, isLoading = false }) {
     retryCountRef.current = nextCount;
     setRetryCount(nextCount);
 
-    const delay = RETRY_DELAYS_MS[nextCount - 1] || RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1];
+    const delay = RETRY_DELAYS_MS;
     setPlayerState('loading');
     clearRetryTimer();
     retryTimerRef.current = window.setTimeout(() => {
