@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE_BRANDING } from '@/config/site';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -18,10 +18,37 @@ const MENU_ITEMS = [
 export default function SiteHeader() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navRef = useRef(null);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event) => {
+      if (!navRef.current?.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   const isItemActive = (href) => {
     if (href === '/') {
@@ -33,7 +60,10 @@ export default function SiteHeader() {
 
   return (
     <header className="safe-area-top sticky top-0 z-40 border-b border-steel/15 bg-white/75 backdrop-blur-md">
-      <nav className="safe-area-x mx-auto w-full max-w-[1440px] px-3 py-3 md:flex md:items-center md:justify-between md:gap-4 md:px-4 xl:px-5">
+      <nav
+        ref={navRef}
+        className="safe-area-x mx-auto w-full max-w-[1440px] px-3 py-3 md:flex md:items-center md:justify-between md:gap-4 md:px-4 xl:px-5"
+      >
         <div className="flex items-center justify-between gap-3">
           <a href="/" className="flex min-w-0 items-center gap-2">
             <img
