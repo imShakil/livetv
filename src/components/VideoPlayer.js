@@ -503,10 +503,11 @@ export default function VideoPlayer({ channel, autoplay, isLoading = false }) {
         {showBlockingOverlay ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/38 px-4 backdrop-blur-[1px]">
             {playerState === 'error' ? (
-              <div className="w-full max-w-md rounded-xl border border-rose-200/70 bg-white/95 p-4 text-center text-slate-900 shadow-xl backdrop-blur-sm dark:border-rose-300/35 dark:bg-slate-900/90 dark:text-slate-100 md:p-5">
+              <div className="w-full max-w-md rounded-xl border border-white/20 bg-slate-950/82 p-4 text-center text-white shadow-xl backdrop-blur-sm md:p-5">
                 <p className="text-sm font-semibold md:text-base">Playback error</p>
-                <p className="mt-2 text-xs text-slate-700 dark:text-slate-200 md:text-sm">
-                  {errorInfo?.message || 'Stream playback failed. Please try again.'}
+                <p className="mt-2 text-xs text-white/85 md:text-sm">
+                  {/* {errorInfo?.message || 'Stream playback failed. Please try again.'} */}
+                  Stream playback failed. Please try again.
                 </p>
                 <button
                   type="button"
@@ -521,7 +522,7 @@ export default function VideoPlayer({ channel, autoplay, isLoading = false }) {
               <div className="flex flex-col items-center gap-2 text-center text-white">
                 <InlineLoader />
                 <p className="text-xs font-medium md:text-sm">
-                  {playerState === 'stalled' ? 'Rebuffering stream...' : 'Loading stream...'}
+                  {playerState === 'stalled' ? 'Buffering...' : 'Loading...'}
                 </p>
                 {retryCount > 0 ? (
                   <p className="text-[10px] text-white/80 md:text-xs">Auto-retry attempt {retryCount} / {MAX_AUTO_RETRIES}</p>
