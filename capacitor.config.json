@@ -2,8 +2,12 @@
   "appId": "com.imshakil.bdiptv",
   "appName": "Dekho Prime",
   "webDir": "out",
+  "server": {
+    "androidScheme": "http"
+  },
   "android": {
-    "path": "mobile-app/android"
+    "path": "mobile-app/android",
+    "allowMixedContent": true
   },
   "ios": {
     "path": "mobile-app/ios"

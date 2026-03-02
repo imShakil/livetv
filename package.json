@@ -7,6 +7,15 @@
     "build": "next build",
     "start": "next start",
     "version:set": "node scripts/set-release-version.js",
+    "mobile:sync": "bash scripts/mobile-sync.sh",
+    "mobile:sync:android": "bash scripts/mobile-sync.sh android",
+    "mobile:sync:ios": "bash scripts/mobile-sync.sh ios",
+    "android:release:apk": "bash scripts/mobile-release-android.sh apk",
+    "android:release:aab": "bash scripts/mobile-release-android.sh aab",
+    "android:release:apk:skip-build": "bash scripts/mobile-release-android.sh apk --skip-build",
+    "android:release:aab:skip-build": "bash scripts/mobile-release-android.sh aab --skip-build",
+    "ios:ipa": "bash scripts/mobile-release-ios.sh",
+    "ios:ipa:skip-build": "bash scripts/mobile-release-ios.sh --skip-build",
     "postinstall": "patch-package"
   },
   "dependencies": {

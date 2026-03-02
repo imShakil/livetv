@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 function resolveHostAdsConfig(config, hostname) {
   if (!config || !hostname) {
@@ -23,17 +24,7 @@ function resolveHostAdsConfig(config, hostname) {
 }
 
 function isNativeRuntime() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  const cap = window.Capacitor;
-  if (!cap) {
-    return false;
-  }
-  if (typeof cap.isNativePlatform === 'function') {
-    return cap.isNativePlatform();
-  }
-  return typeof cap.getPlatform === 'function' ? cap.getPlatform() !== 'web' : cap.platform !== 'web';
+  return Capacitor.getPlatform() !== 'web';
 }
 
 function resolvePlatformAdsConfig(config) {

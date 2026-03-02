@@ -56,10 +56,23 @@ function resolveAdMobAdUnit(slotConfig) {
 
 async function ensureAdMobInitialized(slotConfig) {
   if (!admobInitPromise) {
-    admobInitPromise = AdMob.initialize({
-      initializeForTesting: Boolean(slotConfig?.isTesting),
-      testingDevices: Array.isArray(slotConfig?.testingDevices) ? slotConfig.testingDevices : undefined
-    }).catch((error) => {
+    admobInitPromise = (async () => {
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          const statusResult = await AdMob.trackingAuthorizationStatus();
+          if (statusResult?.status === 'notDetermined') {
+            await AdMob.requestTrackingAuthorization();
+          }
+        } catch {
+          // Ignore ATT prompt failures so ad initialization can still proceed.
+        }
+      }
+
+      await AdMob.initialize({
+        initializeForTesting: Boolean(slotConfig?.isTesting),
+        testingDevices: Array.isArray(slotConfig?.testingDevices) ? slotConfig.testingDevices : undefined
+      });
+    })().catch((error) => {
       admobInitPromise = null;
       throw error;
     });

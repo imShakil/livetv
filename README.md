@@ -42,6 +42,70 @@ npm run build
 The static site is exported to `out/` and deployed with GitHub Pages workflow.
 If deployed under a subpath (example `/bdixtv`), set `NEXT_PUBLIC_BASE_PATH=/bdixtv` during build.
 
+## Mobile sync automation
+
+Sync web build into native Android/iOS projects:
+
+```bash
+npm run mobile:sync
+```
+
+Platform-specific sync:
+
+```bash
+npm run mobile:sync:android
+npm run mobile:sync:ios
+```
+
+Skip web build when `out/` is already up to date:
+
+```bash
+bash scripts/mobile-sync.sh all --skip-build
+```
+
+## Signed release build automation
+
+Build signed Android artifacts:
+
+```bash
+npm run android:release:apk
+npm run android:release:aab
+```
+
+Skip web build if `out/` is already current:
+
+```bash
+npm run android:release:apk:skip-build
+npm run android:release:aab:skip-build
+```
+
+Build signed iOS IPA:
+
+```bash
+npm run ios:ipa
+```
+
+Skip web build if `out/` is already current:
+
+```bash
+npm run ios:ipa:skip-build
+```
+
+Note: `ios:ipa` requires Apple Distribution signing assets installed in Xcode
+(distribution certificate + provisioning profile for `com.imshakil.bdiptv`).
+
+iOS export options are read from:
+
+```bash
+mobile-app/ios/App/exportOptions.plist
+```
+
+IPA export output directory:
+
+```bash
+mobile-artifacts/ios/export
+```
+
 ## Custom channel management
 
 Custom channels are loaded from `NEXT_PUBLIC_FEATURED_JSON_PLAYLIST`.

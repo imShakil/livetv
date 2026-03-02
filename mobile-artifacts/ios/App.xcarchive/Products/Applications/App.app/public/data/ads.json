@@ -1,0 +1,148 @@
+{
+  "enabled": true,
+  "adClient": "ca-pub-2449944472030683",
+  "defaultProvider": "adsense",
+  "mobile": {
+    "enabled": true,
+    "provider": "admob",
+    "androidAppId": "ca-app-pub-2449944472030683~7713357808",
+    "iosAppId": "ca-app-pub-2449944472030683~5263288430",
+    "interstitial": {
+      "channelSwitch": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/8834189162",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/2423500541",
+        "triggerEvery": 4,
+        "cooldownSeconds": 90,
+        "isTesting": false
+      }
+    },
+    "rewarded": {
+      "unlockStream": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/1046510126",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/5303651038",
+        "rewardMinutes": 30,
+        "ctaLabel": "Watch ad for 30m ad-free",
+        "isTesting": false
+      }
+    },
+    "slots": {
+      "header": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/3143557401",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/1828128810",
+        "position": "TOP_CENTER",
+        "adSize": "ADAPTIVE_BANNER",
+        "isTesting": false
+      },
+      "belowPlayer": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/3250689993",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/9759065083",
+        "position": "BOTTOM_CENTER",
+        "adSize": "ADAPTIVE_BANNER",
+        "isTesting": false
+      },
+      "eventTop": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/8350285076",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/9264241060",
+        "position": "TOP_CENTER",
+        "adSize": "ADAPTIVE_BANNER",
+        "isTesting": false
+      },
+      "eventBottom": {
+        "enabled": true,
+        "provider": "admob",
+        "androidAdUnitId": "ca-app-pub-2449944472030683/2770655336",
+        "iosAdUnitId": "ca-app-pub-2449944472030683/7951159396",
+        "position": "BOTTOM_CENTER",
+        "adSize": "ADAPTIVE_BANNER",
+        "isTesting": false
+      }
+    }
+  },
+  "hosts": {
+    "livetv.imshakil.online": {
+      "slots": {
+        "eventTop": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "f5b3dd31223867445ffbc26d9c3d0f27",
+          "format": "iframe",
+          "width": 728,
+          "height": 90
+        },
+        "eventBottom": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "f8ac512686840774355af7ab4d2a7f76",
+          "format": "iframe",
+          "width": 300,
+          "height": 250
+        }
+      }
+    },
+    "bdixtv.mhosen.com": {
+      "slots": {
+        "eventTop": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "a3733e34f2a77d008f3e7aae0d74c258",
+          "format": "iframe",
+          "width": 728,
+          "height": 90
+        },
+        "eventBottom": {
+          "enabled": true,
+          "provider": "adsterra",
+          "key": "92dd647b5220ff89e37c8c6f22fd6424",
+          "format": "iframe",
+          "width": 300,
+          "height": 250
+        }
+      }
+    }
+  },
+  "slots": {
+    "header": {
+      "enabled": false,
+      "provider": "adsense",
+      "slot": "7560642116",
+      "format": "horizontal"
+    },
+    "belowPlayer": {
+      "enabled": true,
+      "provider": "adsense",
+      "slot": "8250402676",
+      "format": "horizontal"
+    },
+    "inFeed": {
+      "enabled": true,
+      "provider": "adsense",
+      "slot": "1168146663",
+      "format": "fluid",
+      "layoutKey": "-fb+5w+4e-db+86"
+    },
+    "sidebar": {
+      "enabled": true,
+      "provider": "adsense",
+      "slot": "8250402676",
+      "format": "horizontal"
+    },
+    "eventTop": {
+      "enabled": false,
+      "provider": "adsense",
+      "format": "horizontal"
+    },
+    "eventBottom": {
+      "enabled": false
+    }
+  }
+}
