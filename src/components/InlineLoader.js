@@ -28,7 +28,7 @@ export default function InlineLoader({
           />
         </svg>
         <img
-          src="/uploads/dekho-prime-icon-only-600x500.png"
+          src="/uploads/dekho-prime-icon-header-128.png"
           alt={`${SITE_BRANDING.title} logo`}
           className={`${logoSize} rounded-2xl`}
         />

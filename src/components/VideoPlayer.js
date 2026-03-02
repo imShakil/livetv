@@ -523,10 +523,8 @@ export default function VideoPlayer({ channel, autoplay, isLoading = false }) {
                 <InlineLoader />
                 <p className="text-xs font-medium md:text-sm">
                   {playerState === 'stalled' ? 'Buffering...' : 'Loading...'}
+                  {retryCount > 0 ? ` Auto-retry attempt ${retryCount} / ${MAX_AUTO_RETRIES}` : ''}
                 </p>
-                {retryCount > 0 ? (
-                  <p className="text-[10px] text-white/80 md:text-xs">Auto-retry attempt {retryCount} / {MAX_AUTO_RETRIES}</p>
-                ) : null}
               </div>
             )}
           </div>
